@@ -1,0 +1,153 @@
+[
+  {
+    "question": "What is the overall chemical equation for photosynthesis?",
+    "expected_chunks_contain": ["6CO2", "C6H12O6"],
+    "answer_should_mention": ["carbon dioxide", "glucose", "oxygen"]
+  },
+  {
+    "question": "Where does photosynthesis take place in plant cells?",
+    "expected_chunks_contain": ["chloroplast"],
+    "answer_should_mention": ["chloroplast"]
+  },
+  {
+    "question": "What are the two main stages of photosynthesis?",
+    "expected_chunks_contain": ["light-dependent", "Calvin cycle"],
+    "answer_should_mention": ["light-dependent", "Calvin"]
+  },
+  {
+    "question": "Why do plants appear green?",
+    "expected_chunks_contain": ["reflects green light"],
+    "answer_should_mention": ["green", "chlorophyll"]
+  },
+  {
+    "question": "What are grana in a chloroplast?",
+    "expected_chunks_contain": ["grana"],
+    "answer_should_mention": ["thylakoid", "stacks"]
+  },
+  {
+    "question": "What is the stroma?",
+    "expected_chunks_contain": ["stroma"],
+    "answer_should_mention": ["stroma", "fluid"]
+  },
+  {
+    "question": "What wavelengths does chlorophyll absorb most efficiently?",
+    "expected_chunks_contain": ["red and blue wavelengths"],
+    "answer_should_mention": ["red", "blue"]
+  },
+  {
+    "question": "What are carotenoids and what do they do?",
+    "expected_chunks_contain": ["carotenoids"],
+    "answer_should_mention": ["carotenoids", "light"]
+  },
+  {
+    "question": "What is photolysis?",
+    "expected_chunks_contain": ["photolysis"],
+    "answer_should_mention": ["water", "oxygen"]
+  },
+  {
+    "question": "What are the two photosystems involved in the light-dependent reactions?",
+    "expected_chunks_contain": ["Photosystem I", "Photosystem II"],
+    "answer_should_mention": ["Photosystem I", "Photosystem II"]
+  },
+  {
+    "question": "At what wavelength does Photosystem II absorb light?",
+    "expected_chunks_contain": ["680 nanometers"],
+    "answer_should_mention": ["680"]
+  },
+  {
+    "question": "What does Photosystem I primarily produce?",
+    "expected_chunks_contain": ["NADPH"],
+    "answer_should_mention": ["NADPH"]
+  },
+  {
+    "question": "What is RuBisCO and what does it do?",
+    "expected_chunks_contain": ["RuBisCO"],
+    "answer_should_mention": ["carbon dioxide", "RuBP"]
+  },
+  {
+    "question": "What is RuBP?",
+    "expected_chunks_contain": ["ribulose bisphosphate"],
+    "answer_should_mention": ["five-carbon", "RuBP"]
+  },
+  {
+    "question": "What are the three stages of the Calvin cycle?",
+    "expected_chunks_contain": ["Carbon fixation", "Reduction", "Regeneration"],
+    "answer_should_mention": ["fixation", "reduction", "regeneration"]
+  },
+  {
+    "question": "What is photorespiration?",
+    "expected_chunks_contain": ["photorespiration"],
+    "answer_should_mention": ["oxygen", "RuBisCO"]
+  },
+  {
+    "question": "How does temperature affect photosynthesis?",
+    "expected_chunks_contain": ["temperature", "enzyme"],
+    "answer_should_mention": ["temperature", "enzyme"]
+  },
+  {
+    "question": "How does light intensity affect the rate of photosynthesis?",
+    "expected_chunks_contain": ["light intensity"],
+    "answer_should_mention": ["increases", "saturation"]
+  },
+  {
+    "question": "What is the difference between C3 and C4 plants?",
+    "expected_chunks_contain": ["C3 plants", "C4 plants"],
+    "answer_should_mention": ["three-carbon", "four-carbon"]
+  },
+  {
+    "question": "Give examples of C4 plants.",
+    "expected_chunks_contain": ["maize", "sugarcane"],
+    "answer_should_mention": ["maize", "sugarcane"]
+  },
+  {
+    "question": "What is CAM photosynthesis?",
+    "expected_chunks_contain": ["Crassulacean Acid Metabolism"],
+    "answer_should_mention": ["night", "stomata"]
+  },
+  {
+    "question": "Give examples of CAM plants.",
+    "expected_chunks_contain": ["cacti", "agave"],
+    "answer_should_mention": ["cacti", "agave"]
+  },
+  {
+    "question": "Why are C4 plants more efficient in hot environments?",
+    "expected_chunks_contain": ["concentrate CO2", "photorespiration"],
+    "answer_should_mention": ["photorespiration", "CO2"]
+  },
+  {
+    "question": "What role does photosynthesis play in the global carbon cycle?",
+    "expected_chunks_contain": ["carbon cycle"],
+    "answer_should_mention": ["CO2", "carbon"]
+  },
+  {
+    "question": "How are fossil fuels related to photosynthesis?",
+    "expected_chunks_contain": ["fossil fuels"],
+    "answer_should_mention": ["carbon", "ancient"]
+  },
+  {
+    "question": "What is artificial photosynthesis?",
+    "expected_chunks_contain": ["artificial photosynthesis"],
+    "answer_should_mention": ["hydrogen", "solar"]
+  },
+  {
+    "question": "Why is RuBisCO significant?",
+    "expected_chunks_contain": ["most abundant enzyme"],
+    "answer_should_mention": ["abundant", "carbon fixation"]
+  },
+  {
+    "question": "What happens to stomata in CAM plants during the day?",
+    "expected_chunks_contain": ["stomata close"],
+    "answer_should_mention": ["stomata", "water"]
+  },
+  {
+    "question": "What is G3P and what is it used for?",
+    "expected_chunks_contain": ["glyceraldehyde-3-phosphate"],
+    "answer_should_mention": ["glucose", "G3P"]
+  },
+  {
+    "question": "What is the boiling point of mercury?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  }
+]
