@@ -8,8 +8,8 @@ const supabase = createClient(
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// below this score we don't have a useful match
-const SIMILARITY_THRESHOLD = 0.75;
+// below this score we don't have a useful match — 0.4 is the right floor for text-embedding-3-small
+const SIMILARITY_THRESHOLD = 0.4;
 const TOP_K = 5;
 
 export type RetrievedChunk = {
