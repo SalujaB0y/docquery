@@ -1,151 +1,151 @@
 [
   {
-    "question": "What is the overall chemical equation for photosynthesis?",
-    "expected_chunks_contain": ["6CO2", "C6H12O6"],
-    "answer_should_mention": ["carbon dioxide", "glucose", "oxygen"]
+    "question": "What is algorithmic trading?",
+    "expected_chunks_contain": ["automated pre-programmed trading instructions"],
+    "answer_should_mention": ["automated", "price", "volume"]
   },
   {
-    "question": "Where does photosynthesis take place in plant cells?",
-    "expected_chunks_contain": ["chloroplast"],
-    "answer_should_mention": ["chloroplast"]
+    "question": "What percentage of Forex market trading was performed by algorithms in 2019?",
+    "expected_chunks_contain": ["92%"],
+    "answer_should_mention": ["92"]
   },
   {
-    "question": "What are the two main stages of photosynthesis?",
-    "expected_chunks_contain": ["light-dependent", "Calvin cycle"],
-    "answer_should_mention": ["light-dependent", "Calvin"]
+    "question": "What types of institutions use algorithmic trading?",
+    "expected_chunks_contain": ["investment banks", "pension funds", "hedge funds"],
+    "answer_should_mention": ["banks", "funds"]
   },
   {
-    "question": "Why do plants appear green?",
-    "expected_chunks_contain": ["reflects green light"],
-    "answer_should_mention": ["green", "chlorophyll"]
+    "question": "What is deep reinforcement learning in the context of algorithmic trading?",
+    "expected_chunks_contain": ["deep reinforcement learning", "DRL"],
+    "answer_should_mention": ["adapt", "market"]
   },
   {
-    "question": "What are grana in a chloroplast?",
-    "expected_chunks_contain": ["grana"],
-    "answer_should_mention": ["thylakoid", "stacks"]
+    "question": "What are directional change algorithms?",
+    "expected_chunks_contain": ["directional change", "DC"],
+    "answer_should_mention": ["trend", "market"]
   },
   {
-    "question": "What is the stroma?",
-    "expected_chunks_contain": ["stroma"],
-    "answer_should_mention": ["stroma", "fluid"]
+    "question": "When was the designated order turnaround system introduced and by whom?",
+    "expected_chunks_contain": ["designated order turnaround", "DOT"],
+    "answer_should_mention": ["1970s", "New York Stock Exchange"]
   },
   {
-    "question": "What wavelengths does chlorophyll absorb most efficiently?",
-    "expected_chunks_contain": ["red and blue wavelengths"],
-    "answer_should_mention": ["red", "blue"]
+    "question": "What was SuperDOT?",
+    "expected_chunks_contain": ["SuperDOT"],
+    "answer_should_mention": ["1984", "DOT"]
   },
   {
-    "question": "What are carotenoids and what do they do?",
-    "expected_chunks_contain": ["carotenoids"],
-    "answer_should_mention": ["carotenoids", "light"]
+    "question": "What is program trading as defined by the NYSE?",
+    "expected_chunks_contain": ["15 or more stocks", "US$1 million"],
+    "answer_should_mention": ["stocks", "million"]
   },
   {
-    "question": "What is photolysis?",
-    "expected_chunks_contain": ["photolysis"],
-    "answer_should_mention": ["water", "oxygen"]
+    "question": "What role did decimalization play in algorithmic trading?",
+    "expected_chunks_contain": ["decimalization", "US$0.01"],
+    "answer_should_mention": ["tick size", "liquidity"]
   },
   {
-    "question": "What are the two photosystems involved in the light-dependent reactions?",
-    "expected_chunks_contain": ["Photosystem I", "Photosystem II"],
-    "answer_should_mention": ["Photosystem I", "Photosystem II"]
+    "question": "What is VWAP?",
+    "expected_chunks_contain": ["volume-weighted average price"],
+    "answer_should_mention": ["volume", "average", "price"]
   },
   {
-    "question": "At what wavelength does Photosystem II absorb light?",
-    "expected_chunks_contain": ["680 nanometers"],
-    "answer_should_mention": ["680"]
+    "question": "What is the Regulation National Market System?",
+    "expected_chunks_contain": ["Regulation National Market System"],
+    "answer_should_mention": ["SEC", "equity"]
   },
   {
-    "question": "What does Photosystem I primarily produce?",
-    "expected_chunks_contain": ["NADPH"],
-    "answer_should_mention": ["NADPH"]
+    "question": "How does index fund rebalancing create opportunities for algorithmic traders?",
+    "expected_chunks_contain": ["index rebalance effect"],
+    "answer_should_mention": ["passive", "rebalance"]
   },
   {
-    "question": "What is RuBisCO and what does it do?",
-    "expected_chunks_contain": ["RuBisCO"],
-    "answer_should_mention": ["carbon dioxide", "RuBP"]
+    "question": "What is pairs trading?",
+    "expected_chunks_contain": ["long-short", "market-neutral"],
+    "answer_should_mention": ["long-short", "discrepancies"]
   },
   {
-    "question": "What is RuBP?",
-    "expected_chunks_contain": ["ribulose bisphosphate"],
-    "answer_should_mention": ["five-carbon", "RuBP"]
+    "question": "What are the three conditions under which arbitrage is possible?",
+    "expected_chunks_contain": ["law of one price", "identical cash flows"],
+    "answer_should_mention": ["price", "asset"]
   },
   {
-    "question": "What are the three stages of the Calvin cycle?",
-    "expected_chunks_contain": ["Carbon fixation", "Reduction", "Regeneration"],
-    "answer_should_mention": ["fixation", "reduction", "regeneration"]
+    "question": "What is mean reversion?",
+    "expected_chunks_contain": ["average price over time"],
+    "answer_should_mention": ["average", "revert"]
   },
   {
-    "question": "What is photorespiration?",
-    "expected_chunks_contain": ["photorespiration"],
-    "answer_should_mention": ["oxygen", "RuBisCO"]
+    "question": "What is the Ornstein-Uhlenbeck equation?",
+    "expected_chunks_contain": ["Ornstein-Uhlenbeck"],
+    "answer_should_mention": ["mean", "reversion"]
   },
   {
-    "question": "How does temperature affect photosynthesis?",
-    "expected_chunks_contain": ["temperature", "enzyme"],
-    "answer_should_mention": ["temperature", "enzyme"]
+    "question": "What is scalping in algorithmic trading?",
+    "expected_chunks_contain": ["bid-ask spread", "scalping"],
+    "answer_should_mention": ["spread", "position"]
   },
   {
-    "question": "How does light intensity affect the rate of photosynthesis?",
-    "expected_chunks_contain": ["light intensity"],
-    "answer_should_mention": ["increases", "saturation"]
+    "question": "What are dark pools?",
+    "expected_chunks_contain": ["dark pools", "undisplayed liquidity"],
+    "answer_should_mention": ["anonymous", "private"]
   },
   {
-    "question": "What is the difference between C3 and C4 plants?",
-    "expected_chunks_contain": ["C3 plants", "C4 plants"],
-    "answer_should_mention": ["three-carbon", "four-carbon"]
+    "question": "What are the three stages of market timing strategy development?",
+    "expected_chunks_contain": ["backtesting", "forward testing", "live testing"],
+    "answer_should_mention": ["backtesting", "forward", "live"]
   },
   {
-    "question": "Give examples of C4 plants.",
-    "expected_chunks_contain": ["maize", "sugarcane"],
-    "answer_should_mention": ["maize", "sugarcane"]
+    "question": "What is high-frequency trading?",
+    "expected_chunks_contain": ["high turnover", "high order-to-trade ratios"],
+    "answer_should_mention": ["speed", "algorithms"]
   },
   {
-    "question": "What is CAM photosynthesis?",
-    "expected_chunks_contain": ["Crassulacean Acid Metabolism"],
-    "answer_should_mention": ["night", "stomata"]
+    "question": "What share of US equity trading volume do HFT firms account for?",
+    "expected_chunks_contain": ["73%"],
+    "answer_should_mention": ["73"]
   },
   {
-    "question": "Give examples of CAM plants.",
-    "expected_chunks_contain": ["cacti", "agave"],
-    "answer_should_mention": ["cacti", "agave"]
+    "question": "Which company first made the HFT strategy successful?",
+    "expected_chunks_contain": ["Renaissance Technologies"],
+    "answer_should_mention": ["Renaissance Technologies"]
   },
   {
-    "question": "Why are C4 plants more efficient in hot environments?",
-    "expected_chunks_contain": ["concentrate CO2", "photorespiration"],
-    "answer_should_mention": ["photorespiration", "CO2"]
+    "question": "Name some major US high-frequency trading firms.",
+    "expected_chunks_contain": ["Citadel", "Virtu Financial"],
+    "answer_should_mention": ["Citadel", "Virtu"]
   },
   {
-    "question": "What role does photosynthesis play in the global carbon cycle?",
-    "expected_chunks_contain": ["carbon cycle"],
-    "answer_should_mention": ["CO2", "carbon"]
+    "question": "What is spoofing?",
+    "expected_chunks_contain": ["without ever having the intention of letting the order execute"],
+    "answer_should_mention": ["manipulate", "cancel"]
   },
   {
-    "question": "How are fossil fuels related to photosynthesis?",
-    "expected_chunks_contain": ["fossil fuels"],
-    "answer_should_mention": ["carbon", "ancient"]
+    "question": "What is quote stuffing?",
+    "expected_chunks_contain": ["quote stuffing", "flood the market"],
+    "answer_should_mention": ["orders", "latency"]
   },
   {
-    "question": "What is artificial photosynthesis?",
-    "expected_chunks_contain": ["artificial photosynthesis"],
-    "answer_should_mention": ["hydrogen", "solar"]
+    "question": "What happened to Knight Capital Group on August 1, 2012?",
+    "expected_chunks_contain": ["Knight Capital Group", "$440 million"],
+    "answer_should_mention": ["440 million", "technology"]
   },
   {
-    "question": "Why is RuBisCO significant?",
-    "expected_chunks_contain": ["most abundant enzyme"],
-    "answer_should_mention": ["abundant", "carbon fixation"]
+    "question": "What was the 2010 Flash Crash?",
+    "expected_chunks_contain": ["Flash Crash", "600 points"],
+    "answer_should_mention": ["Dow Jones", "2010"]
   },
   {
-    "question": "What happens to stomata in CAM plants during the day?",
-    "expected_chunks_contain": ["stomata close"],
-    "answer_should_mention": ["stomata", "water"]
+    "question": "What is econophysics?",
+    "expected_chunks_contain": ["econophysics"],
+    "answer_should_mention": ["physicists", "financial"]
   },
   {
-    "question": "What is G3P and what is it used for?",
-    "expected_chunks_contain": ["glyceraldehyde-3-phosphate"],
-    "answer_should_mention": ["glucose", "G3P"]
+    "question": "What is the FIX protocol?",
+    "expected_chunks_contain": ["Financial Information Exchange"],
+    "answer_should_mention": ["protocol", "trading"]
   },
   {
-    "question": "What is the boiling point of mercury?",
+    "question": "What is the melting point of iron?",
     "expected_chunks_contain": [],
     "answer_should_mention": [],
     "is_fallback": true

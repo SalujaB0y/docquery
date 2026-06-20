@@ -1,77 +1,123 @@
-Photosynthesis
+Algorithmic Trading
 
-Photosynthesis is a biological process used by plants, algae, and some bacteria to convert light energy, usually from the sun, into chemical energy stored in glucose. This process is fundamental to life on Earth, as it produces the oxygen in the atmosphere and forms the base of most food chains.
+Algorithmic trading is a method of executing orders using automated pre-programmed trading instructions accounting for variables such as time, price, and volume. This type of trading attempts to leverage the speed and computational resources of computers relative to human traders. In the twenty-first century, algorithmic trading has been gaining traction with both retail and institutional traders.
 
-Overview
+A study in 2019 showed that around 92% of trading in the Forex market was performed by trading algorithms rather than humans.
 
-The overall chemical equation for photosynthesis is:
-6CO2 + 6H2O + light energy → C6H12O6 + 6O2
+It is widely used by investment banks, pension funds, mutual funds, and hedge funds, which may need to spread out the execution of large orders or carry out trades too quickly for human traders to react. However, it is also available to private traders using simple retail tools. Algorithmic trading is widely used in equities, futures, crypto, and foreign exchange markets.
 
-This means that six molecules of carbon dioxide and six molecules of water, using light energy, produce one molecule of glucose and six molecules of oxygen.
+The term algorithmic trading is often used synonymously with automated trading system. These encompass a variety of trading strategies, some of which are based on formulas and results from mathematical finance, and often rely on specialized software.
 
-Photosynthesis occurs in two main stages: the light-dependent reactions and the light-independent reactions (also known as the Calvin cycle).
+Machine Learning Integration
 
-Chloroplasts
+Before machine learning, the early stage of algorithmic trading consisted of pre-programmed rules designed to respond to that market's specific condition. Traders and developers coded instructions based on technical indicators such as relative strength index and moving averages to automate long or short orders. There was a significant pivotal shift in algorithmic trading as machine learning was adopted. Specifically deep reinforcement learning (DRL) which allows systems to dynamically adapt to its current market conditions. Unlike previous models, DRL uses simulations to train algorithms, enabling them to learn and optimize iteratively.
 
-In plants and algae, photosynthesis takes place in organelles called chloroplasts. Chloroplasts are double-membrane structures found mainly in the mesophyll cells of leaves. They contain a system of internal membranes called thylakoids, which are arranged in stacks called grana. The fluid surrounding the thylakoids is called the stroma.
+Complementing DRL, directional change (DC) algorithms represent another advancement focusing on core market events rather than fixed time intervals. DC algorithms detect subtle trend transitions such as uptrend reversals, improving trade timing and profitability in volatile markets.
 
-Chlorophyll is the primary pigment involved in photosynthesis. It is located in the thylakoid membranes. Chlorophyll absorbs light most efficiently in the red and blue wavelengths and reflects green light, which is why plants appear green. There are several types of chlorophyll, with chlorophyll a and chlorophyll b being the most common in plants.
+History
 
-In addition to chlorophyll, plants contain accessory pigments such as carotenoids, which absorb light in the blue-green and yellow-orange wavelengths. These pigments help capture a broader spectrum of light and transfer the energy to chlorophyll a.
+Computerization of the order flow in financial markets began in the early 1970s, when the New York Stock Exchange introduced the designated order turnaround system (DOT). SuperDOT was introduced in 1984 as an upgraded version of DOT. Both systems allowed for the routing of orders electronically to the proper trading post.
 
-Light-Dependent Reactions
+With the rise of fully electronic markets came the introduction of program trading, which is defined by the New York Stock Exchange as an order to buy or sell 15 or more stocks valued at over US$1 million total. In the 1980s, program trading became widely used in trading between the S&P 500 equity and futures markets in a strategy known as index arbitrage.
 
-The light-dependent reactions occur in the thylakoid membranes. When chlorophyll absorbs light energy, it excites electrons to a higher energy state. These high-energy electrons are passed along an electron transport chain, releasing energy that is used to produce ATP (adenosine triphosphate) and NADPH (nicotinamide adenine dinucleotide phosphate).
+Both strategies, often lumped together as program trading, were blamed by many people for exacerbating or even starting the 1987 stock market crash.
 
-Water molecules are split in a process called photolysis during the light-dependent reactions. This splitting of water releases oxygen as a byproduct, which is released into the atmosphere. The hydrogen ions and electrons from water are used to replace the electrons lost by chlorophyll.
+The financial landscape was changed again with the emergence of electronic communication networks (ECNs) in the 1990s, which allowed for trading of stock and currencies outside of traditional exchanges. In the US, decimalization changed the minimum tick size from 1/16 of a dollar to US$0.01 per share in 2001, and may have encouraged algorithmic trading as it changed the market microstructure by permitting smaller differences between the bid and offer prices.
 
-There are two photosystems involved in the light-dependent reactions: Photosystem I (PSI) and Photosystem II (PSII). PSII absorbs light at a wavelength of 680 nanometers and is responsible for the initial splitting of water. PSI absorbs light at 700 nanometers and is primarily involved in producing NADPH.
+This increased market liquidity led to institutional traders splitting up orders according to computer algorithms so they could execute orders at a better average price. These average price benchmarks are measured and calculated by computers by applying the time-weighted average price or more usually by the volume-weighted average price.
 
-The Calvin Cycle
+In 2005, the Regulation National Market System was put in place by the SEC to strengthen the equity market. This changed the way firms traded with rules such as the Trade Through Rule, which mandates that market orders must be posted and executed electronically at the best available price.
 
-The Calvin cycle, also called the light-independent reactions or carbon fixation, takes place in the stroma of the chloroplast. It uses the ATP and NADPH produced by the light-dependent reactions to convert carbon dioxide into glucose.
+Strategies
 
-The Calvin cycle has three stages:
-1. Carbon fixation: Carbon dioxide from the atmosphere is attached to a five-carbon compound called RuBP (ribulose bisphosphate) by an enzyme called RuBisCO (ribulose-1,5-bisphosphate carboxylase/oxygenase). This produces a six-carbon compound that immediately splits into two three-carbon molecules called 3-PGA (3-phosphoglycerate).
-2. Reduction: ATP and NADPH are used to convert 3-PGA into G3P (glyceraldehyde-3-phosphate), a three-carbon sugar that can be used to build glucose and other organic molecules.
-3. Regeneration of RuBP: Most of the G3P molecules are used to regenerate RuBP, allowing the cycle to continue. This regeneration also requires ATP.
+Trading ahead of index fund rebalancing
 
-RuBisCO is the most abundant enzyme on Earth and plays a critical role in carbon fixation. However, it has a relatively slow reaction rate and can also react with oxygen instead of carbon dioxide in a process called photorespiration, which reduces the efficiency of photosynthesis.
+Most retirement savings, such as private pension funds or 401(k) and individual retirement accounts in the US, are invested in mutual funds, the most popular of which are index funds which must periodically rebalance or adjust their portfolio to match the new prices and market capitalization of the underlying securities in the stock or other index that they track. Profits are transferred from passive index investors to active investors, some of whom are algorithmic traders specifically exploiting the index rebalance effect. The magnitude of these losses incurred by passive investors has been estimated at 21 to 28 basis points per year for the S&P 500 and 38 to 77 basis points per year for the Russell 2000.
 
-Factors Affecting Photosynthesis
+Pairs trading
 
-Several environmental factors influence the rate of photosynthesis:
+Pairs trading or pair trading is a long-short, ideally market-neutral strategy enabling traders to profit from transient discrepancies in relative value of close substitutes. Unlike classic arbitrage, in pairs trading the law of one price cannot guarantee convergence of prices. It belongs to wider categories of statistical arbitrage, convergence trading, and relative value strategies.
 
-Light intensity: As light intensity increases, the rate of photosynthesis increases up to a certain point, beyond which it levels off due to saturation of the photosystems.
+Arbitrage
 
-Carbon dioxide concentration: Higher concentrations of CO2 generally increase the rate of photosynthesis, as carbon dioxide is a reactant in the Calvin cycle.
+In economics and finance, arbitrage is the practice of taking advantage of a price difference between two or more markets: striking a combination of matching deals that capitalize upon the imbalance, the profit being the difference between the market prices. When used by academics, an arbitrage is a transaction that involves no negative cash flow at any probabilistic or temporal state and a positive cash flow in at least one state; in simple terms, it is the possibility of a risk-free profit at zero cost.
 
-Temperature: Photosynthesis is affected by temperature because it involves enzyme-catalyzed reactions. The rate increases with temperature up to an optimum point (usually around 25-35°C for most plants), beyond which enzymes begin to denature and the rate decreases.
+Arbitrage is possible when one of three conditions is met: the same asset does not trade at the same price on all markets; two assets with identical cash flows do not trade at the same price; or an asset with a known price in the future does not today trade at its future price discounted at the risk-free interest rate.
 
-Water availability: Water is a reactant in the light-dependent reactions. Water stress can cause stomata to close, reducing CO2 entry and slowing photosynthesis.
+Mean reversion
 
-C3, C4, and CAM Plants
+Mean reversion is a mathematical methodology sometimes used for stock investing. The idea is that both a stock's high and low prices are temporary, and that a stock's price tends to have an average price over time. An example of a mean-reverting process is the Ornstein-Uhlenbeck stochastic equation.
 
-Plants have evolved different photosynthetic pathways to adapt to varying environmental conditions.
+When the current market price is less than the average price, the stock is considered attractive for purchase, with the expectation that the price will rise. When the current market price is above the average price, the market price is expected to fall.
 
-C3 plants are the most common type. They fix carbon dioxide directly through the Calvin cycle, producing a three-carbon compound (3-PGA) as the first stable product. Examples include wheat, rice, and most trees. C3 plants are less efficient in hot, dry conditions because photorespiration increases.
+Scalping
 
-C4 plants have evolved a mechanism to concentrate CO2 around RuBisCO, reducing photorespiration. They fix CO2 first into a four-carbon compound in mesophyll cells, which is then transported to bundle sheath cells where the Calvin cycle takes place. Examples include maize (corn), sugarcane, and sorghum. C4 plants are more efficient in hot, sunny environments.
+Scalping is liquidity provision by non-traditional market makers, whereby traders attempt to earn the bid-ask spread. This procedure allows for profit so long as price moves are less than this spread and normally involves establishing and liquidating a position quickly, usually within minutes or less.
 
-CAM (Crassulacean Acid Metabolism) plants open their stomata at night to collect CO2, which is stored as organic acids. During the day, stomata close to reduce water loss, and the stored CO2 is released for use in the Calvin cycle. CAM plants are highly adapted to arid environments. Examples include cacti, agave, and many succulents.
+A market maker is basically a specialized scalper. The volume a market maker trades is many times more than the average individual scalper. However, registered market makers are bound by exchange rules stipulating their minimum quote obligations. For instance, NASDAQ requires each market maker to post at least one bid and one ask at some price level, so as to maintain a two-sided market for each stock represented.
 
-Significance of Photosynthesis
+Transaction cost reduction
 
-Photosynthesis is essential for life on Earth for several reasons:
+Most strategies referred to as algorithmic trading fall into the cost-reduction category. The basic idea is to break down a large order into small orders and place them in the market over time. The choice of algorithm depends on various factors, with the most important being volatility and liquidity of the stock.
 
-Oxygen production: The oxygen in Earth's atmosphere is almost entirely the result of photosynthesis over billions of years.
+Some examples of algorithms are VWAP, TWAP, Implementation shortfall, POV, Display size, Liquidity seeker, and Stealth. Modern algorithms are often optimally constructed via either static or dynamic programming.
 
-Carbon fixation: Photosynthesis removes CO2 from the atmosphere and stores carbon in organic compounds, playing a key role in the global carbon cycle and climate regulation.
+Dark pools
 
-Energy foundation: Photosynthesis forms the base of almost all food chains. The chemical energy stored in glucose during photosynthesis flows through ecosystems via herbivores, carnivores, and decomposers.
+Dark pools are alternative trading systems that are private in nature and thus do not interact with public order flow, and seek instead to provide undisplayed liquidity to large blocks of securities. In dark pools, trading takes place anonymously, with most orders hidden or iceberged. Algorithms used in dark pools are commonly given names such as Stealth, Iceberg, Dagger, Guerrilla, Sniper, and Sniffer.
 
-Fossil fuels: Coal, oil, and natural gas are derived from ancient organic matter that was originally produced through photosynthesis. Burning these fuels releases the carbon that was fixed millions of years ago.
+Market timing
 
-Artificial Photosynthesis
+Strategies designed to generate alpha are considered market timing strategies. These types of strategies are designed using a methodology that includes backtesting, forward testing and live testing. Market timing algorithms will typically use technical indicators such as moving averages but can also include pattern recognition logic implemented using finite-state machines.
 
-Scientists are working on artificial photosynthesis systems that mimic the natural process to produce clean fuels such as hydrogen from water and sunlight. These systems aim to use solar energy more efficiently than current photovoltaic cells and could provide a sustainable energy source in the future.
+Backtesting the algorithm is typically the first stage and involves simulating the hypothetical trades through an in-sample data period. Forward testing involves running the algorithm through an out-of-sample data set. Live testing is the final stage and requires the developer to compare actual live trades with both the backtested and forward tested models.
+
+High-Frequency Trading
+
+High-frequency trading (HFT) is a form of algorithmic trading characterized by high turnover and high order-to-trade ratios. Among its key attributes are highly sophisticated algorithms, specialized order types, co-location, very short-term investment horizons, and high cancellation rates for orders. In the US, high-frequency trading firms represent 2% of the approximately 20,000 firms operating today, but account for 73% of all equity trading volume. The HFT strategy was first made successful by Renaissance Technologies.
+
+High-frequency funds started to become especially popular in 2007 and 2008. Many HFT firms are market makers and provide liquidity to the market, which has lowered volatility and helped narrow bid-offer spreads making trading and investing cheaper for other market participants. Among the major US high frequency trading firms are Chicago Trading Company, Optiver, Virtu Financial, DRW, Jump Trading, Two Sigma Securities, GTS, IMC Financial, and Citadel LLC.
+
+There are four key categories of HFT strategies: market-making based on order flow, market-making based on tick data information, event arbitrage and statistical arbitrage.
+
+Market making
+
+Market making involves placing a limit order to sell above the current market price or a buy limit order below the current price on a regular and continuous basis to capture the bid-ask spread. Automated Trading Desk, which was bought by Citigroup in July 2007, has been an active market maker, accounting for about 6% of total volume on both NASDAQ and the New York Stock Exchange.
+
+Statistical arbitrage
+
+Statistical arbitrage in HFT might involve several securities such as covered interest rate parity in the foreign exchange market. If the market prices are different enough from those implied in the model to cover transaction cost, four transactions can be made to guarantee a risk-free profit. The TABB Group estimates that annual aggregate profits of low latency arbitrage strategies currently exceed US$21 billion.
+
+Spoofing
+
+Spoofing is a strategy where traders place orders to give the impression of wanting to buy or sell shares, without ever having the intention of letting the order execute, to temporarily manipulate the market to buy or sell shares at a more favorable price. This is done by creating limit orders outside the current bid or ask price to change the reported price to other market participants. The trader subsequently cancels their limit orders before they are executed.
+
+Quote stuffing
+
+Quote stuffing is a tactic employed by malicious traders that involves quickly entering and withdrawing large quantities of orders in an attempt to flood the market, thereby gaining an advantage over slower market participants. The rapidly placed and canceled orders cause market data feeds that ordinary investors rely on to delay price quotes. HFT firms benefit from proprietary, higher-capacity feeds and the most capable, lowest latency infrastructure.
+
+Low Latency Trading Systems
+
+Low latency trading refers to the algorithmic trading systems and network routes used by financial institutions connecting to stock exchanges and electronic communication networks to rapidly execute financial transactions. In a contemporary electronic market around 2009, low latency trade processing time was qualified as under 10 milliseconds, and ultra-low latency as under 1 millisecond.
+
+Low-latency traders depend on ultra-low latency networks. They profit by providing information, such as competing bids and offers, to their algorithms microseconds faster than their competitors. Strategies are constantly altered to reflect the subtle changes in the market as well as to combat the threat of the strategy being reverse engineered by competitors.
+
+Issues and Developments
+
+On August 1, 2012 Knight Capital Group experienced a technology issue in their automated trading system, causing a loss of $440 million.
+
+Algorithmic and high-frequency trading were shown to have contributed to volatility during the May 6, 2010 Flash Crash, when the Dow Jones Industrial Average plunged about 600 points only to recover those losses within minutes. At the time, it was the second largest point swing at 1,010.14 points, and the biggest one-day point decline at 998.5 points on an intraday basis in Dow Jones Industrial Average history.
+
+Financial market news is now being formatted by firms such as Need To Know News, Thomson Reuters, Dow Jones, and Bloomberg, to be read and traded on via algorithms. Some firms are also attempting to automatically assign sentiment to news stories so that automated trading can work directly on the news story.
+
+System Architecture
+
+An algorithmic trading system can be broken down into three parts: the exchange, the server, and the application. Exchanges provide data to the system, which typically consists of the latest order book, traded volumes, and last traded price. The server receives the data simultaneously acting as a store for historical database. The data is analyzed at the application side, where trading strategies are fed from the user.
+
+With the emergence of the FIX (Financial Information Exchange) protocol, the connection to different destinations has become easier. The complex event processing engine (CEP) is used for order routing and risk management.
+
+Effects
+
+Algorithmic trading has caused a shift in the types of employees working in the financial industry. Many physicists have entered the financial industry as quantitative analysts. This interdisciplinary movement is sometimes called econophysics. Algorithmic trading has encouraged an increased focus on data and decreased emphasis on sell-side research.
+
+Jobs once done by human traders are being switched to computers. More fully automated markets such as NASDAQ, Direct Edge, and BATS have gained market share from less automated markets such as the NYSE. Economies of scale in electronic trading have contributed to lowering commissions and trade processing fees.

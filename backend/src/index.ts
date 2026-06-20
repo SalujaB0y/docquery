@@ -1,11 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import ingestRouter from './routes/ingest';
 import queryRouter from './routes/query';
-
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT ?? 3001;
