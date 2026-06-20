@@ -60,7 +60,7 @@ async function run() {
   console.log('─'.repeat(75));
 
   for (const pair of normalPairs) {
-    await sleep(1000);
+    await sleep(3000);
     const result = await query(pair.question);
     const hit = checkRetrievalHit(result, pair.expected_chunks_contain);
     const faithful = checkAnswerFaithfulness(result.answer, pair.answer_should_mention);
@@ -76,7 +76,7 @@ async function run() {
   console.log('fallback pairs\n');
 
   for (const pair of fallbackPairs) {
-    await sleep(1000);
+    await sleep(3000);
     const result = await query(pair.question);
     const correct = checkFallback(result.answer);
     if (correct) fallbackCorrect++;
