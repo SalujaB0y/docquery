@@ -20,15 +20,26 @@ type QueryResponse = {
   sources: { index: number; content: string }[];
 };
 
-async function query(question: string): Promise<QueryResponse> {
-  const res = await fetch(`${API_URL}/api/query`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question }),
-  });
+async function query(question: string, retries = 3): Promise<QueryResponse> {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const res = await fetch(`${API_URL}/api/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question }),
+    });
 
-  if (!res.ok) throw new Error(`query failed: ${res.status}`);
-  return res.json() as Promise<QueryResponse>;
+    if (res.status === 429) {
+      const wait = 15000 * (attempt + 1);
+      console.log(`rate limited, waiting ${wait / 1000}s...`);
+      await sleep(wait);
+      continue;
+    }
+
+    if (!res.ok) throw new Error(`query failed: ${res.status}`);
+    return res.json() as Promise<QueryResponse>;
+  }
+
+  throw new Error('query failed after retries');
 }
 
 function checkRetrievalHit(result: QueryResponse, keywords: string[]): boolean {
@@ -60,7 +71,7 @@ async function run() {
   console.log('─'.repeat(75));
 
   for (const pair of normalPairs) {
-    await sleep(3000);
+    await sleep(5000);
     const result = await query(pair.question);
     const hit = checkRetrievalHit(result, pair.expected_chunks_contain);
     const faithful = checkAnswerFaithfulness(result.answer, pair.answer_should_mention);
@@ -76,7 +87,7 @@ async function run() {
   console.log('fallback pairs\n');
 
   for (const pair of fallbackPairs) {
-    await sleep(3000);
+    await sleep(5000);
     const result = await query(pair.question);
     const correct = checkFallback(result.answer);
     if (correct) fallbackCorrect++;
