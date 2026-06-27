@@ -22,21 +22,31 @@ type QueryResponse = {
 
 async function query(question: string, retries = 3): Promise<QueryResponse> {
   for (let attempt = 0; attempt < retries; attempt++) {
-    const res = await fetch(`${API_URL}/api/query`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question }),
-    });
+    try {
+      const res = await fetch(`${API_URL}/api/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
 
-    if (res.status === 429) {
-      const wait = 15000 * (attempt + 1);
-      console.log(`rate limited, waiting ${wait / 1000}s...`);
-      await sleep(wait);
-      continue;
+      if (res.status === 429) {
+        const wait = 15000 * (attempt + 1);
+        console.log(`rate limited, waiting ${wait / 1000}s...`);
+        await sleep(wait);
+        continue;
+      }
+
+      if (!res.ok) throw new Error(`query failed: ${res.status}`);
+      return res.json() as Promise<QueryResponse>;
+    } catch (err) {
+      if (attempt < retries - 1) {
+        const wait = 3000 * (attempt + 1);
+        console.log(`request failed (attempt ${attempt + 1}), retrying in ${wait / 1000}s...`);
+        await sleep(wait);
+        continue;
+      }
+      throw err;
     }
-
-    if (!res.ok) throw new Error(`query failed: ${res.status}`);
-    return res.json() as Promise<QueryResponse>;
   }
 
   throw new Error('query failed after retries');
