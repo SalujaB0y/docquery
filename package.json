@@ -1,0 +1,23 @@
+{
+  "name": "docquery",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently --names backend,frontend --prefix-colors cyan,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SalujaB0y/docquery.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SalujaB0y/docquery/issues"
+  },
+  "homepage": "https://github.com/SalujaB0y/docquery#readme",
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

@@ -28,9 +28,11 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           PORT: 3001
+          RATE_LIMIT_MAX: 200
         run: npm run build && node dist/index.js &
 
       - name: wait for backend
+        working-directory: backend
         run: npx wait-on http://localhost:3001/health --timeout 30000
 
       - name: run eval
