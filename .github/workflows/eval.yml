@@ -29,11 +29,20 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           PORT: 3001
           RATE_LIMIT_MAX: 200
-        run: npm run build && node dist/index.js &
+        run: npm run build && node dist/index.js > /tmp/backend.log 2>&1 &
 
       - name: wait for backend
         working-directory: backend
         run: npx wait-on http://localhost:3001/health --timeout 30000
+
+      - name: probe query endpoint
+        run: |
+          echo "--- backend logs so far ---"
+          cat /tmp/backend.log
+          echo "--- probe query endpoint ---"
+          curl -s -X POST http://localhost:3001/api/query \
+            -H "Content-Type: application/json" \
+            -d '{"question":"What is algorithmic trading?"}' | cat
 
       - name: run eval
         working-directory: backend
@@ -43,3 +52,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           EVAL_API_URL: http://localhost:3001
         run: npm run eval
+
+      - name: show backend logs
+        if: always()
+        run: cat /tmp/backend.log
