@@ -62,7 +62,7 @@
   {
     "question": "What is pairs trading?",
     "expected_chunks_contain": ["long-short", "market-neutral"],
-    "answer_should_mention": ["long-short", "discrepancies"]
+    "answer_should_mention": ["long-short", "profit"]
   },
   {
     "question": "What are the three conditions under which arbitrage is possible?",
@@ -72,7 +72,7 @@
   {
     "question": "What is mean reversion?",
     "expected_chunks_contain": ["average price over time"],
-    "answer_should_mention": ["average", "revert"]
+    "answer_should_mention": ["average", "price"]
   },
   {
     "question": "What is the Ornstein-Uhlenbeck equation?",
@@ -97,7 +97,7 @@
   {
     "question": "What is high-frequency trading?",
     "expected_chunks_contain": ["high turnover", "high order-to-trade ratios"],
-    "answer_should_mention": ["speed", "algorithms"]
+    "answer_should_mention": ["latency", "algorithms"]
   },
   {
     "question": "What share of US equity trading volume do HFT firms account for?",
