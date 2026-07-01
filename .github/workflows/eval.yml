@@ -21,6 +21,10 @@ jobs:
         working-directory: backend
         run: npm install
 
+      - name: build backend
+        working-directory: backend
+        run: npm run build
+
       - name: start backend
         working-directory: backend
         env:
@@ -29,7 +33,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           PORT: 3001
           RATE_LIMIT_MAX: 200
-        run: npm run build && node dist/index.js > /tmp/backend.log 2>&1 &
+        run: node dist/index.js > /tmp/backend.log 2>&1 &
 
       - name: wait for backend
         working-directory: backend
