@@ -41,9 +41,46 @@ export default function Home() {
         body: JSON.stringify({ question }),
       });
 
-      if (!res.ok) throw new Error('query failed');
-      const data: QueryResult = await res.json();
-      setResult(data);
+      if (!res.ok || !res.body) throw new Error('query failed');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      let sources: Source[] = [];
+      let answer = '';
+      let tokenCount = 0;
+      let estimatedCost = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const frames = buffer.split('\n\n');
+        buffer = frames.pop() ?? '';
+
+        for (const frame of frames) {
+          const match = frame.match(/^event: (\w+)\ndata: ([\s\S]*)$/);
+          if (!match) continue;
+
+          const [, eventType, dataStr] = match;
+          const data = JSON.parse(dataStr);
+
+          if (eventType === 'sources') {
+            sources = data.sources;
+          } else if (eventType === 'token') {
+            answer += data.token;
+            setResult({ answer, sources, tokenCount, estimatedCost });
+          } else if (eventType === 'done') {
+            tokenCount = data.tokenCount;
+            estimatedCost = data.estimatedCost;
+            setResult({ answer, sources, tokenCount, estimatedCost });
+          } else if (eventType === 'error') {
+            throw new Error(data.message);
+          }
+        }
+      }
     } catch {
       setError('Something went wrong. Check that the backend is running.');
     } finally {

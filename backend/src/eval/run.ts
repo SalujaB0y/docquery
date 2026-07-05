@@ -23,7 +23,7 @@ type QueryResponse = {
 async function query(question: string, retries = 3): Promise<QueryResponse> {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const res = await fetch(`${API_URL}/api/query`, {
+      const res = await fetch(`${API_URL}/api/query?stream=false`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
