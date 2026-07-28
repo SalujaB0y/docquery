@@ -4,3 +4,9 @@ dist/
 .env
 *.env.local
 .next/
+
+# local working notes — not part of the published project
+CLAUDE.md
+HANDOVER.md
+BUILD_PLAN.md
+.claude/
