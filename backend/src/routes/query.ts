@@ -37,9 +37,9 @@ router.post('/', async (req: Request, res: Response) => {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
-      writeEvent(res, 'sources', []);
-      writeEvent(res, 'token', { token: FALLBACK_ANSWER });
-      writeEvent(res, 'done', { tokenCount: 0, estimatedCost: 0 });
+      writeEvent(res, 'sources', { type: 'sources', sources: [] });
+      writeEvent(res, 'token', { type: 'token', token: FALLBACK_ANSWER });
+      writeEvent(res, 'done', { type: 'done', tokenCount: 0, estimatedCost: 0 });
       res.end();
       return;
     }
