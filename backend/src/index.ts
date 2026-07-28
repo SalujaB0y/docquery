@@ -3,6 +3,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import ingestRouter from './routes/ingest';
 import queryRouter from './routes/query';
+import documentsRouter from './routes/documents';
 
 const app = express();
 const port = process.env.PORT ?? 3001;
@@ -24,6 +25,7 @@ app.use('/api', limiter);
 
 app.use('/api/ingest', ingestRouter);
 app.use('/api/query', queryRouter);
+app.use('/api/documents', documentsRouter);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });

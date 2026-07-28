@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import FileUpload from '@/components/FileUpload';
+import DocumentList from '@/components/DocumentList';
 import QueryInput from '@/components/QueryInput';
 import AnswerDisplay from '@/components/AnswerDisplay';
 
@@ -21,13 +22,28 @@ export type UploadedDoc = {
   documentId: string;
   filename: string;
   chunksIngested: number;
+  // only present on documents that came back from GET /api/documents, not fresh uploads
+  createdAt?: string;
 };
 
 export default function Home() {
-  const [uploadedDoc, setUploadedDoc] = useState<UploadedDoc | null>(null);
+  const [documents, setDocuments] = useState<UploadedDoc[]>([]);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [result, setResult] = useState<QueryResult | null>(null);
   const [querying, setQuerying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // the page only knows about this session's uploads otherwise — a refresh would lose them
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`)
+      .then(res => res.json())
+      .then((data: { documents: UploadedDoc[] }) => setDocuments(data.documents))
+      .catch(() => setError('Could not load your documents. Check that the backend is running.'));
+  }, []);
+
+  function handleUpload(doc: UploadedDoc) {
+    setDocuments(prev => [doc, ...prev.filter(d => d.documentId !== doc.documentId)]);
+  }
 
   async function handleQuery(question: string) {
     setQuerying(true);
@@ -38,7 +54,7 @@ export default function Home() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, documentId: selectedDocId ?? undefined }),
       });
 
       if (!res.ok || !res.body) throw new Error('query failed');
@@ -93,21 +109,22 @@ export default function Home() {
       <div className="mb-12">
         <h1 className="text-3xl font-semibold tracking-tight mb-2">DocQuery</h1>
         <p className="text-zinc-400 text-sm">
-          Upload a document, then ask questions about it.
+          Upload documents, then ask questions across all of them or one at a time.
         </p>
       </div>
 
       <div className="space-y-8">
-        <FileUpload onUpload={setUploadedDoc} />
+        <FileUpload onUpload={handleUpload} />
 
-        {uploadedDoc && (
-          <div className="text-sm text-zinc-400 border border-zinc-800 rounded-lg px-4 py-3">
-            <span className="text-zinc-200 font-medium">{uploadedDoc.filename}</span>
-            <span className="ml-2">— {uploadedDoc.chunksIngested} chunks indexed</span>
-          </div>
+        {documents.length > 0 && (
+          <DocumentList
+            documents={documents}
+            selectedDocId={selectedDocId}
+            onSelect={setSelectedDocId}
+          />
         )}
 
-        {uploadedDoc && (
+        {documents.length > 0 && (
           <QueryInput onSubmit={handleQuery} loading={querying} />
         )}
 

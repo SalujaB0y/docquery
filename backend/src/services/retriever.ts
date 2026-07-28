@@ -14,13 +14,17 @@ const TOP_K = 5;
 
 export type RetrievedChunk = {
   id: string;
+  document_id: string;
   content: string;
   similarity: number;
   chunk_index: number;
   token_count: number;
 };
 
-export async function retrieveChunks(question: string): Promise<RetrievedChunk[]> {
+export async function retrieveChunks(
+  question: string,
+  documentId?: string
+): Promise<RetrievedChunk[]> {
   const embeddingResponse = await client.embeddings.create({
     model: 'text-embedding-3-small',
     input: question,
@@ -32,6 +36,8 @@ export async function retrieveChunks(question: string): Promise<RetrievedChunk[]
     query_embedding: queryEmbedding,
     match_threshold: SIMILARITY_THRESHOLD,
     match_count: TOP_K,
+    // null searches every document, which is what the eval and the "All documents" option do
+    filter_document_id: documentId ?? null,
   });
 
   if (error) throw new Error(`retrieval failed: ${error.message}`);
