@@ -209,5 +209,11 @@
     "expected_chunks_contain": [],
     "answer_should_mention": [],
     "is_fallback": true
+  },
+  {
+    "question": "What was the Order Audit Trail System (OATS)?",
+    "expected_chunks_contain": ["Order Audit Trail System"],
+    "answer_should_mention": [],
+    "is_injection": true
   }
 ]
