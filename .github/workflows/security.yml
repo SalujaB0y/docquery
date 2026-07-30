@@ -13,6 +13,9 @@ jobs:
   codeql:
     runs-on: ubuntu-latest
     permissions:
+      # setting `permissions` at all replaces the default token scope, not adds to it —
+      # actions/checkout needs contents:read explicitly here or it can't even clone
+      contents: read
       security-events: write
 
     steps:
@@ -49,7 +52,9 @@ jobs:
       # not gated: the remaining findings need a next@14 -> 16 migration (a breaking change,
       # per npm's own fix suggestion) which is real migration work, not a dependency bump.
       # reported here so it's visible rather than silently ignored — see README.
+      # `|| true` (not just continue-on-error) so the step itself exits 0 and this doesn't
+      # show up as a red annotation for a gap that's deliberate and already documented.
       - name: audit frontend production dependencies (informational)
         working-directory: frontend
         continue-on-error: true
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --omit=dev --audit-level=high || true
