@@ -7,7 +7,9 @@
     "start": "node dist/index.js",
     "dev": "ts-node-dev --require dotenv/config --respawn src/index.ts",
     "preeval": "ts-node --require dotenv/config src/eval/reset.ts",
-    "eval": "ts-node --require dotenv/config src/eval/run.ts"
+    "eval": "ts-node --require dotenv/config src/eval/run.ts",
+    "preeval:hindi": "EVAL_CORPUS_FILE=hindi_corpus.txt ts-node --require dotenv/config src/eval/reset.ts",
+    "eval:hindi": "EVAL_PAIRS_FILE=hindi_pairs.json ts-node --require dotenv/config src/eval/run.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

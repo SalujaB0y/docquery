@@ -1,8 +1,15 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import pairs from './pairs.json';
+import fs from 'fs';
+import path from 'path';
 import { judgeFaithfulness } from './judge';
+
+// overridable so the same runner can score a different pair set, e.g.
+// EVAL_PAIRS_FILE=hindi_pairs.json for the Hindi eval — dynamic read rather than a
+// static import, since a compile-time import can't be swapped by an env var
+const pairsFile = process.env.EVAL_PAIRS_FILE ?? 'pairs.json';
+const pairs = JSON.parse(fs.readFileSync(path.join(__dirname, pairsFile), 'utf-8'));
 
 const API_URL = process.env.EVAL_API_URL ?? 'http://localhost:3001';
 // the pacing exists to stay under the API's own rate limiter; local sweeps can lower it

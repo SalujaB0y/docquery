@@ -1,0 +1,102 @@
+[
+  {
+    "question": "मधुमेह क्या है?",
+    "expected_chunks_contain": ["इंसुलिन"],
+    "answer_should_mention": ["इंसुलिन"]
+  },
+  {
+    "question": "मधुमेह के सामान्य लक्षण क्या हैं?",
+    "expected_chunks_contain": ["बार-बार प्यास लगना"],
+    "answer_should_mention": ["प्यास"]
+  },
+  {
+    "question": "खाली पेट रक्त शर्करा का कौन सा स्तर मधुमेह की पुष्टि करता है?",
+    "expected_chunks_contain": ["126 मिलीग्राम"],
+    "answer_should_mention": ["126"]
+  },
+  {
+    "question": "मधुमेह के रोगियों को किस प्रकार का अनाज खाना चाहिए?",
+    "expected_chunks_contain": ["मोटे अनाज"],
+    "answer_should_mention": ["अनाज"]
+  },
+  {
+    "question": "एचबीए1सी जांच क्या दर्शाती है?",
+    "expected_chunks_contain": ["एचबीए1सी"],
+    "answer_should_mention": ["तीन महीने"]
+  },
+  {
+    "question": "सूर्य नमस्कार में कितने आसन होते हैं?",
+    "expected_chunks_contain": ["बारह आसनों"],
+    "answer_should_mention": ["बारह"]
+  },
+  {
+    "question": "प्राणायाम क्या है?",
+    "expected_chunks_contain": ["सांस पर नियंत्रण"],
+    "answer_should_mention": ["सांस"]
+  },
+  {
+    "question": "सामान्य रक्तचाप कितना माना जाता है?",
+    "expected_chunks_contain": ["120/80"],
+    "answer_should_mention": ["120"]
+  },
+  {
+    "question": "उच्च रक्तचाप के प्रमुख कारण क्या हैं?",
+    "expected_chunks_contain": ["मोटापा"],
+    "answer_should_mention": ["मोटापा"]
+  },
+  {
+    "question": "एक वयस्क को प्रतिदिन कितने घंटे सोना चाहिए?",
+    "expected_chunks_contain": ["सात से नौ घंटे"],
+    "answer_should_mention": ["सात"]
+  },
+  {
+    "question": "स्क्रीन की नीली रोशनी नींद को कैसे प्रभावित करती है?",
+    "expected_chunks_contain": ["मेलाटोनिन"],
+    "answer_should_mention": ["मेलाटोनिन"]
+  },
+  {
+    "question": "गठिया का सबसे आम प्रकार कौन सा है?",
+    "expected_chunks_contain": ["ऑस्टियोआर्थराइटिस"],
+    "answer_should_mention": ["ऑस्टियोआर्थराइटिस"]
+  },
+  {
+    "question": "हल्दी जोड़ों के दर्द में कैसे मदद करती है?",
+    "expected_chunks_contain": ["करक्यूमिन"],
+    "answer_should_mention": ["करक्यूमिन"]
+  },
+  {
+    "question": "हृदय रोग के प्रमुख जोखिम कारक क्या हैं?",
+    "expected_chunks_contain": ["धूम्रपान"],
+    "answer_should_mention": ["धूम्रपान"]
+  },
+  {
+    "question": "कैंसर के इलाज के नए तरीके क्या हैं?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "कोविड-19 वैक्सीन के साइड इफेक्ट क्या हैं?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "बच्चों में ऑटिज्म के लक्षण क्या हैं?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "आयुर्वेदिक दवाओं का नियमन भारत में कैसे होता है?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "केटो डाइट वज़न घटाने में कैसे मदद करती है?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  }
+]

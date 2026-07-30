@@ -12,7 +12,16 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // against the eval's hard negatives it only catches questions that are off-topic outright
 // (1 of 11) — topically adjacent but unanswerable ones clear 0.25 and get refused by the
 // generator prompt instead. so this is a coarse filter, not the main fallback mechanism.
-const SIMILARITY_THRESHOLD = 0.25;
+//
+// 0.25 is tuned against English content specifically — it doesn't transfer to other
+// languages. A full sweep against a Hindi eval corpus (hindi_corpus.txt / hindi_pairs.json,
+// `npm run eval:hindi`) found 0.25 and 0.20 both cap retrieval hit rate at 78.6% (missing
+// real, on-topic content), while 0.15 clears 100% with zero cost to fallback accuracy.
+// 0.10 performs identically to 0.15 but leaves the threshold doing no real filtering work
+// (0 of 5 hard negatives caught by it, vs 1 at 0.15), so 0.15 is the better of the two, not
+// just "lower is safer." A deployment serving Hindi content should set
+// SIMILARITY_THRESHOLD=0.15 rather than inherit the English-tuned default.
+const SIMILARITY_THRESHOLD = Number(process.env.SIMILARITY_THRESHOLD ?? 0.25);
 const TOP_K = 5;
 
 export type RetrievedChunk = {

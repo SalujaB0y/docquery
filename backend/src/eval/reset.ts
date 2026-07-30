@@ -19,11 +19,14 @@ async function reset() {
   const { error } = await supabase.from('documents').delete().not('id', 'is', null);
   if (error) throw new Error(`failed to clear documents: ${error.message}`);
 
-  const corpusPath = path.join(__dirname, 'corpus.txt');
+  // overridable so the same reset+eval flow can run against a different corpus,
+  // e.g. EVAL_CORPUS_FILE=hindi_corpus.txt for the Hindi eval
+  const corpusFile = process.env.EVAL_CORPUS_FILE ?? 'corpus.txt';
+  const corpusPath = path.join(__dirname, corpusFile);
   const fileBuffer = fs.readFileSync(corpusPath);
 
   const form = new FormData();
-  form.append('file', new Blob([fileBuffer], { type: 'text/plain' }), 'corpus.txt');
+  form.append('file', new Blob([fileBuffer], { type: 'text/plain' }), corpusFile);
 
   const res = await fetch(`${API_URL}/api/ingest`, { method: 'POST', body: form });
   if (!res.ok) throw new Error(`failed to re-ingest corpus: ${res.status}`);
