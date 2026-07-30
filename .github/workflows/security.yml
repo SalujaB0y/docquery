@@ -1,0 +1,55 @@
+name: security
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  schedule:
+    # advisories and CodeQL queries update even when the code doesn't
+    - cron: "0 6 * * 1"
+
+jobs:
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - uses: github/codeql-action/analyze@v3
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: install backend deps
+        working-directory: backend
+        run: npm install
+
+      - name: audit backend production dependencies
+        working-directory: backend
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: install frontend deps
+        working-directory: frontend
+        run: npm install
+
+      # not gated: the remaining findings need a next@14 -> 16 migration (a breaking change,
+      # per npm's own fix suggestion) which is real migration work, not a dependency bump.
+      # reported here so it's visible rather than silently ignored — see README.
+      - name: audit frontend production dependencies (informational)
+        working-directory: frontend
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
