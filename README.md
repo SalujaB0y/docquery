@@ -14,7 +14,7 @@ A RAG (retrieval-augmented generation) Q&A system: upload a document, ask questi
 
 - **Chunk quality scoring** — not every chunk that comes out of a text splitter is worth embedding. `isUsableChunk` in [scorer.ts](backend/src/services/scorer.ts) rejects chunks under 100 characters and chunks where more than 40% of lines are duplicates (table headers, repeated boilerplate), so garbage doesn't make it into the vector store.
 - **Cited answers, not just text** — retrieved chunks are numbered `[1]`, `[2]`, etc. in the prompt ([generator.ts](backend/src/services/generator.ts)), and the model is instructed to cite them inline. The API response returns the answer alongside the exact source chunks it cited.
-- **Graceful fallback instead of hallucination** — if the best cosine similarity match is below 0.25 ([retriever.ts](backend/src/services/retriever.ts)), the system returns a fixed "I don't have enough information in the uploaded documents to answer this" instead of guessing. This is measured directly in the eval suite (see below).
+- **Graceful fallback instead of hallucination** — two mechanisms, not one. A cosine similarity floor of 0.25 ([retriever.ts](backend/src/services/retriever.ts)) drops questions with no plausible match, and the prompt instructs the model to refuse when the retrieved excerpts don't cover the question. The eval measures both separately, because it turns out they do very different amounts of work — see [What the numbers actually showed](#what-the-numbers-actually-showed).
 - **Streamed answers with a non-streaming escape hatch** — `POST /api/query` streams tokens over SSE by default, so the answer appears as it's generated. `?stream=false` returns the original single-JSON response, which is what the eval runner consumes — the eval needs a complete answer to score, and shouldn't have to reassemble a stream to get one.
 - **Per-document query scoping** — `match_chunks` takes an optional `filter_document_id`, so a query can search one document or all of them. Passing `null` searches everything, which keeps the eval on the same code path as the UI's "All documents" option.
 
@@ -42,19 +42,39 @@ Backend is Express + TypeScript, frontend is Next.js + Tailwind, talking over a 
 
 ## Eval results
 
-The eval suite ([run.ts](backend/src/eval/run.ts)) runs 30 question/answer pairs against a fixed corpus and checks three things:
+The eval suite ([run.ts](backend/src/eval/run.ts)) runs 40 question/answer pairs against a fixed corpus — 29 answerable, 11 unanswerable.
 
 | Metric | Result | Target |
 |---|---|---|
-| Retrieval hit rate | 93.1% | >80% |
-| Answer faithfulness | 82.8% | >70% |
-| Fallback accuracy | 100.0% | 100% |
+| Retrieval hit rate (recall@5) | 93.1% | >80% |
+| Retrieval MRR | 0.845 | — |
+| Keyword coverage | 82.8% | >70% |
+| Answer faithfulness (LLM judge) | 100.0% (25 answers) | >85% |
+| Fallback accuracy | 100.0% (11/11) | — (reported, not gated) |
+| Over-refusal rate | 7.4% (2/27) | <15% |
 
-- **Retrieval hit rate** — did the correct chunk show up in the top-5 results for a given question.
-- **Answer faithfulness** — does the generated answer actually mention the concepts it's supposed to.
-- **Fallback accuracy** — for questions with no relevant chunk in the corpus, does the system correctly say it doesn't know instead of making something up.
+Answers are generated at temperature 0.2, so these move a little run to run — keyword coverage has ranged 79–86% across runs. Retrieval numbers are deterministic.
 
-This runs in GitHub Actions on every push and fails the build if any threshold isn't met.
+- **Retrieval hit rate** — did the correct chunk show up in the top-5 results.
+- **Retrieval MRR** — *where* in the top 5 it showed up. Hit rate can't distinguish a chunk ranked first from one scraping in at rank 5; 0.845 says most correct chunks rank first, and a handful sit at rank 2.
+- **Keyword coverage** — does the answer contain the terms it should. This is a cheap substring check, not a correctness measure, and it's named for what it does: an answer that hallucinated freely but happened to include the right words would still pass.
+- **Answer faithfulness** — every claim in the answer checked against the chunks it was given, by `gpt-4o-mini` acting as a judge ([judge.ts](backend/src/eval/judge.ts)). This is the metric that actually catches invention. Refusals are excluded from the denominator, since an answer that makes no claims can't be unfaithful.
+- **Fallback accuracy** — for questions the corpus can't answer, does the system say so instead of guessing.
+- **Over-refusal rate** — the price of the previous metric: answerable questions the system declined anyway. Counted only where retrieval actually returned the right chunk, because refusing after a retrieval miss is correct behaviour, not a bug.
+
+This runs in GitHub Actions on every push and fails the build if retrieval, keyword coverage, or faithfulness drops below target, or if over-refusal rises above it. Fallback accuracy is reported but not gated — with 11 hard negatives, a 100% gate fails on noise rather than on regressions.
+
+### What the numbers actually showed
+
+Four results are worth more than the headline percentages:
+
+**The similarity threshold is not what produces the fallback.** The 11 unanswerable questions are deliberate hard negatives — topically adjacent to the corpus but genuinely not in it ("Which regulator fined Knight Capital over the 2012 incident?", "How many basis points do passive investors lose to index rebalancing on the FTSE 100?"). All 11 were refused, but only **1** was refused because retrieval returned nothing below the 0.25 similarity floor. The other **10** cleared the threshold comfortably and were refused by the generator, because the prompt tells it to. So the threshold catches questions that are off-topic outright; it does almost nothing for the adjacent-but-unanswerable case, which is the case that matters. The eval prints this split on every run rather than reporting a single 100%.
+
+**The system's only answer-quality failure is refusing, not inventing.** Faithfulness is 100% across every question it actually answered — nothing hallucinated in this corpus. Every answer-side failure is the system declining a question instead. That's why the eval reports over-refusal as a first-class metric next to fallback accuracy: they are the two sides of one dial. The prompt instruction that earns the 100% fallback figure is the same instruction producing the over-refusals, so "improving" either number in isolation just moves the failure to the other column. The suite now makes that trade visible rather than reporting the flattering half.
+
+**Refusing is only a bug if retrieval succeeded.** In a typical run, two or three answerable questions get refused. "What was SuperDOT?" and "What is the Ornstein-Uhlenbeck equation?" are retrieval misses — refusing there is correct, and counting it as over-refusal would inflate the number and blame the wrong component. Conditioning on retrieval isolates the real cases, and there are two known ones: "What is the FIX protocol?", arguable, since the corpus names the acronym without ever explaining it; and "What is econophysics?", which the corpus defines verbatim with the chunk retrieved at rank 2, yet hand-testing with curl found it refused on roughly 4 of 5 tries. Both are the same generator-prompt behaviour, not two separate bugs — they just don't always trigger in the same run, which is why the over-refusal rate moves between about 4% and 15% run to run rather than landing on one number.
+
+**Excluding refusals from the judge cut the metric disagreements from three to one.** Before that fix, a refusal was scored as trivially "faithful" — it makes no claims — while failing keyword coverage, which manufactured two keyword ✗ / judge ✓ disagreements that weren't about phrasing at all. One genuine disagreement survives: an answer to "What is high-frequency trading?" that is faithful to the source but worded around the expected terms. Zero answers scored keyword ✓ / judge ✗, so the failure mode the keyword check *can't* catch — a fluent hallucination containing the right words — did not occur here, and this eval does not demonstrate the judge catching one.
 
 ## Setup
 
@@ -143,8 +163,13 @@ npm run dev       # starts backend (3001) and frontend (3000)
 cd backend && npm run eval   # backend must already be running
 ```
 
+`npm run eval` wipes the `documents` table and re-ingests the eval corpus first, so don't run it while relying on manually uploaded documents. It paces itself at 5s between questions to stay under the API's own rate limiter; set `EVAL_SLEEP_MS=1500` to run it faster locally.
+
 ## What I'd improve
 
+- **Actually fixing the over-refusal** — 7.4% is measured but untreated. The fix is prompt-side, and it's deliberately not done yet: with only two failing cases and answers generated at temperature 0.2, a prompt change followed by one green eval run would be indistinguishable from a lucky roll. Doing this properly means repeated runs (or temperature 0 in the eval path) and watching fallback accuracy for the corresponding regression, since both come off the same dial.
+- **A judge that gets audited** — the LLM judge is a measuring instrument and nobody has calibrated it. An earlier version of the suite fed it refusals, which it handled inconsistently — sometimes treating "the excerpts don't cover this" as an unsupported claim despite being told not to. Refusals are excluded now, but that inconsistency is a reason to hand-label a sample of its verdicts and establish an error rate rather than assume it's zero.
+- **A threshold sweep** — 0.25 is currently an unjustified constant. The eval showed it barely contributes to the fallback, which raises the obvious question of what a higher floor would buy and what it would cost in retrieval. Running the suite across 0.20 / 0.25 / 0.35 and publishing the curve would answer it; right now the number is defensible only as "it doesn't hurt".
 - **Hybrid search** — pure vector similarity misses exact keyword/entity matches that BM25 would catch. Combining both would improve retrieval on queries with specific names or numbers.
 - **Real PDF parsing** — the upload middleware accepts `application/pdf`, but ingestion reads the buffer as UTF-8, which turns a PDF into garbage before it's embedded. Either wire in a parser like `pdf-parse` or drop PDF from the accepted types; right now the UI advertises support that doesn't work.
 - **Document deletion** — documents can be uploaded and listed but never removed through the API, so the only way to clear one is the eval reset script or the Supabase dashboard.

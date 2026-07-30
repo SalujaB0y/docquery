@@ -8,7 +8,10 @@ const supabase = createClient(
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// below this score we don't have a useful match — 0.4 is the right floor for text-embedding-3-small
+// below this score we don't have a useful match. worth knowing what this actually buys:
+// against the eval's hard negatives it only catches questions that are off-topic outright
+// (1 of 11) — topically adjacent but unanswerable ones clear 0.25 and get refused by the
+// generator prompt instead. so this is a coarse filter, not the main fallback mechanism.
 const SIMILARITY_THRESHOLD = 0.25;
 const TOP_K = 5;
 

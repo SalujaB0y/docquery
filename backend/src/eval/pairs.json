@@ -149,5 +149,65 @@
     "expected_chunks_contain": [],
     "answer_should_mention": [],
     "is_fallback": true
+  },
+  {
+    "question": "What was Citadel's average order-router latency in 2019?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "Which regulator fined Knight Capital over the 2012 incident, and how much was the fine?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "How many basis points per year do passive investors lose to index rebalancing on the FTSE 100?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "What is the minimum capital requirement to register as a NASDAQ market maker?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "How much does co-location at the New York Stock Exchange cost per month?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "What annual return did Renaissance Technologies' Medallion fund achieve?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "Which programming language is most commonly used to implement FIX protocol engines?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "At what time of day did the 2010 Flash Crash begin?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "Who founded Virtu Financial and in what year?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
+  },
+  {
+    "question": "What penalty did the SEC impose for quote stuffing in 2015?",
+    "expected_chunks_contain": [],
+    "answer_should_mention": [],
+    "is_fallback": true
   }
 ]
