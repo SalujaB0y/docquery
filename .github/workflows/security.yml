@@ -14,9 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       # setting `permissions` at all replaces the default token scope, not adds to it —
-      # actions/checkout needs contents:read explicitly here or it can't even clone
+      # actions/checkout needs contents:read explicitly here or it can't even clone.
+      # actions:read is needed too: analyze looks up workflow-run metadata while
+      # uploading SARIF, and without it that call 404s ("resource not accessible")
+      # even after the scan itself completes successfully.
       contents: read
       security-events: write
+      actions: read
 
     steps:
       - uses: actions/checkout@v4
