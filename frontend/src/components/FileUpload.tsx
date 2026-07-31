@@ -1,17 +1,28 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import type { UploadedDoc } from '@/app/page';
+import type { UploadedDoc, Folder } from '@/app/page';
 
 type Props = {
+  folders: Folder[];
   onUpload: (doc: UploadedDoc) => void;
 };
 
-export default function FileUpload({ onUpload }: Props) {
+// depth-first walk so children appear directly under their parent in the flat dropdown
+function flattenWithDepth(folders: Folder[], parentId: string | null = null, depth = 0): { folder: Folder; depth: number }[] {
+  return folders
+    .filter(f => f.parentFolderId === parentId)
+    .flatMap(f => [{ folder: f, depth }, ...flattenWithDepth(folders, f.folderId, depth + 1)]);
+}
+
+export default function FileUpload({ folders, onUpload }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [targetFolderId, setTargetFolderId] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const flatFolders = flattenWithDepth(folders);
 
   async function handleFile(file: File) {
     setError(null);
@@ -19,6 +30,7 @@ export default function FileUpload({ onUpload }: Props) {
 
     const formData = new FormData();
     formData.append('file', file);
+    if (targetFolderId) formData.append('folderId', targetFolderId);
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ingest`, {
@@ -48,45 +60,63 @@ export default function FileUpload({ onUpload }: Props) {
   }
 
   return (
-    <div
-      onClick={() => inputRef.current?.click()}
-      onDrop={handleDrop}
-      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-      onDragLeave={() => setDragOver(false)}
-      className={`
-        border-2 border-dashed rounded-xl px-6 py-10 text-center cursor-pointer
-        transition-colors duration-150
-        ${dragOver
-          ? 'border-accent bg-indigo-950/20'
-          : 'border-zinc-700 hover:border-zinc-500'
-        }
-      `}
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".txt,.pdf"
-        className="hidden"
-        onChange={e => {
-          const file = e.target.files?.[0];
-          if (file) handleFile(file);
-        }}
-      />
-
-      {uploading ? (
-        <p className="text-zinc-400 text-sm">Uploading and indexing...</p>
-      ) : (
-        <>
-          <p className="text-zinc-300 text-sm font-medium">
-            Drop a file here or click to browse
-          </p>
-          <p className="text-zinc-500 text-xs mt-1">.txt or .pdf, up to 10MB</p>
-        </>
+    <div className="space-y-2">
+      {flatFolders.length > 0 && (
+        <select
+          value={targetFolderId}
+          onChange={e => setTargetFolderId(e.target.value)}
+          onClick={e => e.stopPropagation()}
+          className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-accent"
+        >
+          <option value="">Upload to: root (no folder)</option>
+          {flatFolders.map(({ folder, depth }) => (
+            <option key={folder.folderId} value={folder.folderId}>
+              {'  '.repeat(depth)}{folder.name}
+            </option>
+          ))}
+        </select>
       )}
 
-      {error && (
-        <p className="text-red-400 text-xs mt-3">{error}</p>
-      )}
+      <div
+        onClick={() => inputRef.current?.click()}
+        onDrop={handleDrop}
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        className={`
+          border-2 border-dashed rounded-xl px-6 py-10 text-center cursor-pointer
+          transition-colors duration-150
+          ${dragOver
+            ? 'border-accent bg-indigo-950/20'
+            : 'border-zinc-700 hover:border-zinc-500'
+          }
+        `}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".txt,.pdf"
+          className="hidden"
+          onChange={e => {
+            const file = e.target.files?.[0];
+            if (file) handleFile(file);
+          }}
+        />
+
+        {uploading ? (
+          <p className="text-zinc-400 text-sm">Uploading and indexing...</p>
+        ) : (
+          <>
+            <p className="text-zinc-300 text-sm font-medium">
+              Drop a file here or click to browse
+            </p>
+            <p className="text-zinc-500 text-xs mt-1">.txt or .pdf, up to 10MB</p>
+          </>
+        )}
+
+        {error && (
+          <p className="text-red-400 text-xs mt-3">{error}</p>
+        )}
+      </div>
     </div>
   );
 }

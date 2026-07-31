@@ -14,9 +14,9 @@ A RAG (retrieval-augmented generation) Q&A system. Upload a document, ask questi
 - **Cited answers, not just text.** Retrieved chunks are numbered `[1]`, `[2]`, etc. in the prompt ([generator.ts](backend/src/services/generator.ts)), and the model is instructed to cite them inline. The API response returns the answer alongside the exact source chunks it cited.
 - **Graceful fallback instead of hallucination.** Two mechanisms handle this, not one: a cosine similarity floor of 0.25 ([retriever.ts](backend/src/services/retriever.ts)) drops questions with no plausible match, and the prompt instructs the model to refuse when the retrieved excerpts don't cover the question. The eval measures both separately, since it turns out they do very different amounts of work (see [What the numbers actually showed](#what-the-numbers-actually-showed)).
 - **Streamed answers with a non-streaming escape hatch.** `POST /api/query` streams tokens over SSE by default, so the answer appears as it's generated. `?stream=false` returns the original single-JSON response, which is what the eval runner uses: it needs a complete answer to score and shouldn't have to reassemble a stream just to get one.
-- **Per-document query scoping.** `match_chunks` takes an optional `filter_document_id`, so a query can search one document or all of them. Passing `null` searches everything, which keeps the eval on the same code path as the UI's "All documents" option.
+- **Folders with multi-document query scoping.** Documents can be organized into arbitrarily nested folders; the frontend resolves a folder selection to a flat list of document IDs client-side (it already has the tree loaded to render it), so `match_chunks` only ever needs to filter by `filter_document_ids uuid[]`, never reason about folder hierarchy itself. Passing `null` searches everything, which keeps the eval on the same code path as the UI's "All documents" option.
 - **Instructions and retrieved content aren't the same message.** Uploaded documents are untrusted data: their content ends up inside the LLM prompt, so a document containing something like "ignore all previous instructions" is a real, well-known attack (indirect prompt injection). [generator.ts](backend/src/services/generator.ts) puts the system instructions and the retrieved excerpts in separate roles rather than one blended string, and the eval suite includes a probe that checks an embedded instruction gets reported on, not obeyed.
-- **Re-uploading doesn't pollute retrieval.** [ingest.ts](backend/src/routes/ingest.ts) hashes each upload's content: an exact re-upload is skipped rather than re-embedded and duplicated, and a same-filename upload with different content (a corrected transcript, say) replaces the old chunks instead of leaving them to keep competing in retrieval alongside the new ones. Matters most for a document set that grows and changes over time rather than a fixed one-time corpus.
+- **Re-uploading doesn't pollute retrieval.** [ingest.ts](backend/src/routes/ingest.ts) hashes each upload's content: an exact re-upload is skipped rather than re-embedded and duplicated, and a same-filename upload with different content (a corrected transcript, say) replaces the old chunks instead of leaving them to keep competing in retrieval alongside the new ones. The same-filename check is scoped per folder, not global, so "notes.txt" in one folder doesn't clobber an unrelated "notes.txt" in another. Matters most for a document set that grows and changes over time rather than a fixed one-time corpus.
 
 ## Architecture
 
@@ -87,10 +87,18 @@ Run this in the SQL editor on a fresh Supabase project:
 ```sql
 create extension if not exists vector;
 
+create table folders (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  parent_folder_id uuid references folders(id) on delete cascade,
+  created_at timestamptz default now()
+);
+
 create table documents (
   id uuid primary key default gen_random_uuid(),
   filename text not null,
   content_hash text,
+  folder_id uuid references folders(id) on delete set null,
   created_at timestamptz default now()
 );
 
@@ -109,11 +117,16 @@ create table chunks (
 create index on chunks using ivfflat (embedding vector_cosine_ops)
   with (lists = 100);
 
+-- changing a Postgres function's parameter type creates a new overload rather than
+-- replacing the old one, so the old uuid-typed version has to be dropped explicitly
+-- before recreating it with a uuid[] filter, or both coexist and calls become ambiguous
+drop function if exists match_chunks(vector, float, int, uuid);
+
 create or replace function match_chunks(
   query_embedding vector(1536),
   match_threshold float,
   match_count int,
-  filter_document_id uuid default null
+  filter_document_ids uuid[] default null
 )
 returns table(
   id uuid,
@@ -130,7 +143,7 @@ as $$
          chunk_index, token_count
   from chunks
   where 1 - (embedding <=> query_embedding) > match_threshold
-    and (filter_document_id is null or document_id = filter_document_id)
+    and (filter_document_ids is null or document_id = any(filter_document_ids))
   order by similarity desc
   limit match_count;
 $$;

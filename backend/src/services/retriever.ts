@@ -35,7 +35,7 @@ export type RetrievedChunk = {
 
 export async function retrieveChunks(
   question: string,
-  documentId?: string
+  documentIds?: string[]
 ): Promise<RetrievedChunk[]> {
   const embeddingResponse = await client.embeddings.create({
     model: 'text-embedding-3-small',
@@ -48,8 +48,10 @@ export async function retrieveChunks(
     query_embedding: queryEmbedding,
     match_threshold: SIMILARITY_THRESHOLD,
     match_count: TOP_K,
-    // null searches every document, which is what the eval and the "All documents" option do
-    filter_document_id: documentId ?? null,
+    // null searches every document, which is what the eval and an empty selection do.
+    // an empty array here would match nothing (`= any('{}')`), not everything, so an
+    // empty/undefined list must collapse to null rather than being passed through
+    filter_document_ids: documentIds && documentIds.length > 0 ? documentIds : null,
   });
 
   if (error) throw new Error(`retrieval failed: ${error.message}`);

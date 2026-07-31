@@ -22,13 +22,16 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
   const text = req.file.buffer.toString('utf-8');
   const filename = req.file.originalname;
   const contentHash = crypto.createHash('sha256').update(text).digest('hex');
+  // multer parses non-file fields into req.body; empty string from a "root" picker
+  // option should mean unfiled, same as omitting it
+  const folderId = (req.body.folderId as string | undefined) || null;
 
   // exact duplicate — identical content already ingested, possibly under a different
   // filename. skip re-ingesting entirely rather than paying for embeddings again and
   // leaving a second copy of the same chunks competing in retrieval.
   const { data: exactMatch } = await supabase
     .from('documents')
-    .select('id, filename, chunks(count)')
+    .select('id, filename, folder_id, chunks(count)')
     .eq('content_hash', contentHash)
     .maybeSingle();
 
@@ -36,6 +39,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     res.json({
       documentId: exactMatch.id,
       filename: exactMatch.filename,
+      folderId: exactMatch.folder_id,
       chunksIngested: (exactMatch.chunks as { count: number }[])[0]?.count ?? 0,
       duplicate: true,
     });
@@ -45,13 +49,13 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
   // same filename, different content — treat as an updated version of the same document
   // (a corrected transcript, say) and replace it, rather than leaving the old chunks
   // around to keep competing in retrieval against the new ones. chunks cascade-delete
-  // via the document_id FK. filename matching is a real tradeoff, not a full identity
-  // check — two unrelated documents that happen to share a name will collide.
-  const { data: sameNameDoc } = await supabase
-    .from('documents')
-    .select('id')
-    .eq('filename', filename)
-    .maybeSingle();
+  // via the document_id FK. scoped to folder rather than filename alone, so "notes.txt"
+  // in one folder doesn't clobber an unrelated "notes.txt" in another.
+  let sameNameQuery = supabase.from('documents').select('id').eq('filename', filename);
+  sameNameQuery = folderId
+    ? sameNameQuery.eq('folder_id', folderId)
+    : sameNameQuery.is('folder_id', null);
+  const { data: sameNameDoc } = await sameNameQuery.maybeSingle();
 
   if (sameNameDoc) {
     await supabase.from('documents').delete().eq('id', sameNameDoc.id);
@@ -67,7 +71,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
 
   const { data: doc, error: docError } = await supabase
     .from('documents')
-    .insert({ filename, content_hash: contentHash })
+    .insert({ filename, content_hash: contentHash, folder_id: folderId })
     .select()
     .single();
 
@@ -99,6 +103,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
   res.json({
     documentId: doc.id,
     filename,
+    folderId: doc.folder_id,
     chunksIngested: usableChunks.length,
   });
 });

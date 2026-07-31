@@ -11,7 +11,7 @@ function writeEvent(res: Response, event: string, data: unknown) {
 }
 
 router.post('/', async (req: Request, res: Response) => {
-  const { question, documentId } = req.body as { question?: string; documentId?: string };
+  const { question, documentIds } = req.body as { question?: string; documentIds?: string[] };
   // eval hits this with stream=false so it can read a single JSON body
   const streaming = req.query.stream !== 'false';
 
@@ -24,7 +24,7 @@ router.post('/', async (req: Request, res: Response) => {
   const truncatedQ = question.slice(0, 80);
 
   try {
-    const chunks = await retrieveChunks(question, documentId);
+    const chunks = await retrieveChunks(question, documentIds);
 
     if (chunks.length === 0) {
       console.log(`[${timestamp}] q="${truncatedQ}" → no chunks above threshold`);

@@ -22,22 +22,36 @@ export type UploadedDoc = {
   documentId: string;
   filename: string;
   chunksIngested: number;
+  folderId: string | null;
   // only present on documents that came back from GET /api/documents, not fresh uploads
   createdAt?: string;
 };
 
+export type Folder = {
+  folderId: string;
+  name: string;
+  parentFolderId: string | null;
+  createdAt: string;
+};
+
 export default function Home() {
   const [documents, setDocuments] = useState<UploadedDoc[]>([]);
-  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
   const [result, setResult] = useState<QueryResult | null>(null);
   const [querying, setQuerying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // the page only knows about this session's uploads otherwise — a refresh would lose them
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`)
-      .then(res => res.json())
-      .then((data: { documents: UploadedDoc[] }) => setDocuments(data.documents))
+    Promise.all([
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`).then(res => res.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/folders`).then(res => res.json()),
+    ])
+      .then(([docsData, foldersData]: [{ documents: UploadedDoc[] }, { folders: Folder[] }]) => {
+        setDocuments(docsData.documents);
+        setFolders(foldersData.folders);
+      })
       .catch(() => setError('Could not load your documents. Check that the backend is running.'));
   }, []);
 
@@ -51,6 +65,10 @@ export default function Home() {
     ]);
   }
 
+  function handleFolderCreated(folder: Folder) {
+    setFolders(prev => [...prev, folder]);
+  }
+
   async function handleQuery(question: string) {
     setQuerying(true);
     setError(null);
@@ -60,7 +78,12 @@ export default function Home() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, documentId: selectedDocId ?? undefined }),
+        body: JSON.stringify({
+          question,
+          // empty selection means "search everything" — omit the field entirely rather
+          // than sending [], since the backend treats [] as "match no documents"
+          documentIds: selectedDocIds.size > 0 ? Array.from(selectedDocIds) : undefined,
+        }),
       });
 
       if (!res.ok || !res.body) throw new Error('query failed');
@@ -120,13 +143,15 @@ export default function Home() {
       </div>
 
       <div className="space-y-8">
-        <FileUpload onUpload={handleUpload} />
+        <FileUpload folders={folders} onUpload={handleUpload} />
 
         {documents.length > 0 && (
           <DocumentList
             documents={documents}
-            selectedDocId={selectedDocId}
-            onSelect={setSelectedDocId}
+            folders={folders}
+            selectedDocIds={selectedDocIds}
+            onChange={setSelectedDocIds}
+            onFolderCreated={handleFolderCreated}
           />
         )}
 
