@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 import upload from '../middleware/upload';
 import { chunkText } from '../services/chunker';
 import { isUsableChunk } from '../services/scorer';
@@ -20,6 +21,41 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
 
   const text = req.file.buffer.toString('utf-8');
   const filename = req.file.originalname;
+  const contentHash = crypto.createHash('sha256').update(text).digest('hex');
+
+  // exact duplicate — identical content already ingested, possibly under a different
+  // filename. skip re-ingesting entirely rather than paying for embeddings again and
+  // leaving a second copy of the same chunks competing in retrieval.
+  const { data: exactMatch } = await supabase
+    .from('documents')
+    .select('id, filename, chunks(count)')
+    .eq('content_hash', contentHash)
+    .maybeSingle();
+
+  if (exactMatch) {
+    res.json({
+      documentId: exactMatch.id,
+      filename: exactMatch.filename,
+      chunksIngested: (exactMatch.chunks as { count: number }[])[0]?.count ?? 0,
+      duplicate: true,
+    });
+    return;
+  }
+
+  // same filename, different content — treat as an updated version of the same document
+  // (a corrected transcript, say) and replace it, rather than leaving the old chunks
+  // around to keep competing in retrieval against the new ones. chunks cascade-delete
+  // via the document_id FK. filename matching is a real tradeoff, not a full identity
+  // check — two unrelated documents that happen to share a name will collide.
+  const { data: sameNameDoc } = await supabase
+    .from('documents')
+    .select('id')
+    .eq('filename', filename)
+    .maybeSingle();
+
+  if (sameNameDoc) {
+    await supabase.from('documents').delete().eq('id', sameNameDoc.id);
+  }
 
   const rawChunks = chunkText(text);
   const usableChunks = rawChunks.filter(isUsableChunk);
@@ -31,7 +67,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
 
   const { data: doc, error: docError } = await supabase
     .from('documents')
-    .insert({ filename })
+    .insert({ filename, content_hash: contentHash })
     .select()
     .single();
 

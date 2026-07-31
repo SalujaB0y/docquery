@@ -42,7 +42,13 @@ export default function Home() {
   }, []);
 
   function handleUpload(doc: UploadedDoc) {
-    setDocuments(prev => [doc, ...prev.filter(d => d.documentId !== doc.documentId)]);
+    // dedupe by filename too, not just id — re-uploading an existing filename replaces
+    // it server-side under a new documentId, so an id-only filter would leave the old,
+    // now-deleted entry sitting in the list alongside the new one
+    setDocuments(prev => [
+      doc,
+      ...prev.filter(d => d.documentId !== doc.documentId && d.filename !== doc.filename),
+    ]);
   }
 
   async function handleQuery(question: string) {

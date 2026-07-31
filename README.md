@@ -16,6 +16,7 @@ A RAG (retrieval-augmented generation) Q&A system. Upload a document, ask questi
 - **Streamed answers with a non-streaming escape hatch.** `POST /api/query` streams tokens over SSE by default, so the answer appears as it's generated. `?stream=false` returns the original single-JSON response, which is what the eval runner uses: it needs a complete answer to score and shouldn't have to reassemble a stream just to get one.
 - **Per-document query scoping.** `match_chunks` takes an optional `filter_document_id`, so a query can search one document or all of them. Passing `null` searches everything, which keeps the eval on the same code path as the UI's "All documents" option.
 - **Instructions and retrieved content aren't the same message.** Uploaded documents are untrusted data: their content ends up inside the LLM prompt, so a document containing something like "ignore all previous instructions" is a real, well-known attack (indirect prompt injection). [generator.ts](backend/src/services/generator.ts) puts the system instructions and the retrieved excerpts in separate roles rather than one blended string, and the eval suite includes a probe that checks an embedded instruction gets reported on, not obeyed.
+- **Re-uploading doesn't pollute retrieval.** [ingest.ts](backend/src/routes/ingest.ts) hashes each upload's content: an exact re-upload is skipped rather than re-embedded and duplicated, and a same-filename upload with different content (a corrected transcript, say) replaces the old chunks instead of leaving them to keep competing in retrieval alongside the new ones. Matters most for a document set that grows and changes over time rather than a fixed one-time corpus.
 
 ## Architecture
 
@@ -89,8 +90,11 @@ create extension if not exists vector;
 create table documents (
   id uuid primary key default gen_random_uuid(),
   filename text not null,
+  content_hash text,
   created_at timestamptz default now()
 );
+
+create index on documents (content_hash);
 
 create table chunks (
   id uuid primary key default gen_random_uuid(),
