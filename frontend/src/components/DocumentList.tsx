@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { UploadedDoc, Folder } from '@/app/page';
+import authFetch from '@/lib/authFetch';
 
 type Props = {
   documents: UploadedDoc[];
@@ -133,7 +134,7 @@ export default function DocumentList({ documents, folders, selectedDocIds, onCha
       return;
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/folders`, {
+    const res = await authFetch('/api/folders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newFolderName.trim(), parentFolderId }),
@@ -242,8 +243,7 @@ export default function DocumentList({ documents, folders, selectedDocIds, onCha
 
   return (
     <div className="flex-1 overflow-y-auto px-2 pt-3.5 pb-2">
-      <div className="flex items-center justify-between px-2 pb-[9px]">
-        <span className="font-mono text-[10px] tracking-[0.12em] text-faint uppercase">Sources</span>
+      <div className="flex items-center justify-end pb-[9px]">
         <button
           onClick={() => { setCreatingUnder(null); setNewFolderName(''); }}
           className="text-[11.5px] text-muted hover:text-accent hover:bg-accent-soft px-1.5 py-0.5 rounded"

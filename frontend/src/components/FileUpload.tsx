@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import type { UploadedDoc, Folder } from '@/app/page';
+import authFetch from '@/lib/authFetch';
 
 type Props = {
   folders: Folder[];
@@ -33,7 +34,7 @@ export default function FileUpload({ folders, onUpload }: Props) {
     if (targetFolderId) formData.append('folderId', targetFolderId);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ingest`, {
+      const res = await authFetch('/api/ingest', {
         method: 'POST',
         body: formData,
       });
