@@ -8,10 +8,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   const { data, error } = await supabase
     .from('folders')
     .select('id, name, parent_folder_id, created_at')
+    .eq('user_id', req.userId)
     .order('created_at', { ascending: true });
 
   if (error) {
@@ -40,7 +41,7 @@ router.post('/', async (req: Request, res: Response) => {
 
   const { data, error } = await supabase
     .from('folders')
-    .insert({ name: name.trim(), parent_folder_id: parentFolderId ?? null })
+    .insert({ name: name.trim(), parent_folder_id: parentFolderId ?? null, user_id: req.userId })
     .select()
     .single();
 

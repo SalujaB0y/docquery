@@ -1,10 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import requireAuth from './middleware/auth';
 import ingestRouter from './routes/ingest';
 import queryRouter from './routes/query';
 import documentsRouter from './routes/documents';
 import foldersRouter from './routes/folders';
+import threadsRouter from './routes/threads';
 
 const app = express();
 const port = process.env.PORT ?? 3001;
@@ -15,19 +17,21 @@ const limiter = rateLimit({
   message: { error: 'Too many requests, please try again later.' },
 });
 
+// a real Authorization header needs a concrete allowed origin, not '*' — the wildcard
+// fallback that worked for the old unauthenticated dev setup doesn't carry over
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.FRONTEND_URL
-    : '*',
+  origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
 }));
 
 app.use(express.json());
 app.use('/api', limiter);
+app.use('/api', requireAuth);
 
 app.use('/api/ingest', ingestRouter);
 app.use('/api/query', queryRouter);
 app.use('/api/documents', documentsRouter);
 app.use('/api/folders', foldersRouter);
+app.use('/api/threads', threadsRouter);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });

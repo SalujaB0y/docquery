@@ -1,9 +1,15 @@
 import { Router, Request, Response } from 'express';
+import { createClient } from '@supabase/supabase-js';
 import { retrieveChunks } from '../services/retriever';
 import { generateAnswer, streamAnswer } from '../services/generator';
 import { rewriteStandaloneQuestion, ConversationTurn, MAX_HISTORY_TURNS } from '../services/queryRewriter';
 
 const router = Router();
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const FALLBACK_ANSWER = "I don't have enough information in the uploaded documents to answer this.";
 
@@ -32,6 +38,25 @@ router.post('/', async (req: Request, res: Response) => {
   const cappedHistory = (history ?? []).slice(-MAX_HISTORY_TURNS);
 
   try {
+    // resolve the caller's own documents first and intersect with whatever scope they
+    // asked for, so a forged documentId for someone else's document can never leak into
+    // retrieval — retrieveChunks treats an empty array as "search everything", which is
+    // wrong here, so an empty intersection short-circuits to no chunks instead
+    const { data: ownDocs, error: ownDocsError } = await supabase
+      .from('documents')
+      .select('id')
+      .eq('user_id', req.userId);
+
+    if (ownDocsError) {
+      res.status(500).json({ error: 'failed to resolve documents' });
+      return;
+    }
+
+    const ownDocumentIds = (ownDocs ?? []).map(d => d.id);
+    const scopedDocumentIds = documentIds && documentIds.length > 0
+      ? documentIds.filter(id => ownDocumentIds.includes(id))
+      : ownDocumentIds;
+
     // only pay for the rewrite when there's actually a conversation to resolve against —
     // a fresh question has nothing ambiguous to rewrite
     const retrievalQuestion = cappedHistory.length > 0
@@ -39,7 +64,9 @@ router.post('/', async (req: Request, res: Response) => {
       : question;
     const rewriteNote = retrievalQuestion !== question ? ` rewritten="${retrievalQuestion.slice(0, 80)}"` : '';
 
-    const chunks = await retrieveChunks(retrievalQuestion, documentIds);
+    const chunks = scopedDocumentIds.length > 0
+      ? await retrieveChunks(retrievalQuestion, scopedDocumentIds)
+      : [];
 
     if (chunks.length === 0) {
       console.log(`[${timestamp}] q="${truncatedQ}"${rewriteNote} → no chunks above threshold`);

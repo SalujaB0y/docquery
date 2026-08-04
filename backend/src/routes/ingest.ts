@@ -34,6 +34,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     .from('documents')
     .select('id, filename, folder_id, summary, chunks(count)')
     .eq('content_hash', contentHash)
+    .eq('user_id', req.userId)
     .maybeSingle();
 
   if (exactMatch) {
@@ -53,7 +54,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
   // around to keep competing in retrieval against the new ones. chunks cascade-delete
   // via the document_id FK. scoped to folder rather than filename alone, so "notes.txt"
   // in one folder doesn't clobber an unrelated "notes.txt" in another.
-  let sameNameQuery = supabase.from('documents').select('id').eq('filename', filename);
+  let sameNameQuery = supabase.from('documents').select('id').eq('filename', filename).eq('user_id', req.userId);
   sameNameQuery = folderId
     ? sameNameQuery.eq('folder_id', folderId)
     : sameNameQuery.is('folder_id', null);
@@ -80,7 +81,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
 
   const { data: doc, error: docError } = await supabase
     .from('documents')
-    .insert({ filename, content_hash: contentHash, folder_id: folderId, summary })
+    .insert({ filename, content_hash: contentHash, folder_id: folderId, summary, user_id: req.userId })
     .select()
     .single();
 

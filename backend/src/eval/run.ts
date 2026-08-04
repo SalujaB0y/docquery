@@ -4,6 +4,7 @@ dotenv.config();
 import fs from 'fs';
 import path from 'path';
 import { judgeFaithfulness } from './judge';
+import { getEvalSession } from './authClient';
 
 // overridable so the same runner can score a different pair set, e.g.
 // EVAL_PAIRS_FILE=hindi_pairs.json for the Hindi eval — dynamic read rather than a
@@ -41,6 +42,13 @@ type QueryResponse = {
   sources: { index: number; content: string }[];
 };
 
+// resolved once and reused across every question in the run, rather than signing in per call
+let evalAuthHeader: Promise<{ Authorization: string }> | null = null;
+function getAuthHeader() {
+  evalAuthHeader ??= getEvalSession().then(s => s.authHeader);
+  return evalAuthHeader;
+}
+
 async function query(question: string, retries = 3): Promise<QueryResponse> {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
@@ -48,7 +56,7 @@ async function query(question: string, retries = 3): Promise<QueryResponse> {
       // OpenAI call per answered question
       const res = await fetch(`${API_URL}/api/query?stream=false&followups=false`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeader()) },
         body: JSON.stringify({ question }),
       });
 

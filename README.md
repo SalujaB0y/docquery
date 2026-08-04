@@ -93,6 +93,7 @@ create table folders (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   parent_folder_id uuid references folders(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete cascade,
   created_at timestamptz default now()
 );
 
@@ -102,6 +103,7 @@ create table documents (
   content_hash text,
   folder_id uuid references folders(id) on delete set null,
   summary text,
+  user_id uuid references auth.users(id) on delete cascade,
   created_at timestamptz default now()
 );
 
@@ -119,6 +121,16 @@ create table chunks (
 
 create index on chunks using ivfflat (embedding vector_cosine_ops)
   with (lists = 100);
+
+create table threads (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  document_ids uuid[],
+  turns jsonb not null default '[]'::jsonb,
+  user_id uuid references auth.users(id) on delete cascade,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
 
 -- changing a Postgres function's parameter type creates a new overload rather than
 -- replacing the old one, so the old uuid-typed version has to be dropped explicitly
@@ -152,9 +164,34 @@ as $$
 $$;
 ```
 
-Use the `service_role` key (not `anon`) on the backend: the tables have RLS enabled by default on new Supabase projects.
+Use the `service_role` key (not `anon`) on the backend: the tables have RLS enabled by default
+on new Supabase projects. Every route filters by `user_id` itself (see
+`backend/src/middleware/auth.ts` and each route in `backend/src/routes/`) rather than relying
+on Postgres RLS policies — the service-role key bypasses RLS entirely, so the per-user
+isolation is enforced in application code, not the database. Worth knowing if this is ever
+extended: a bug in one route's `.eq('user_id', ...)` filter is a real data leak between users,
+since nothing at the database layer would stop it.
 
 Note that Supabase free-tier projects auto-pause after about a week of inactivity. When that happens every request fails with `TypeError: fetch failed` and the hostname stops resolving, which looks like a code bug but isn't. Resume the project from the Supabase dashboard.
+
+**Google sign-in (Supabase Auth)**
+
+Accounts are handled entirely by Supabase Auth's Google provider — there's no custom OAuth
+code in this repo. To enable it on your own project:
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create an
+   OAuth 2.0 Client ID (Web application). Add your Supabase project's callback URL —
+   `https://<project-ref>.supabase.co/auth/v1/callback` — as an authorized redirect URI.
+2. In the Supabase dashboard, go to **Authentication → Providers → Google**, enable it, and
+   paste in the Client ID and Client Secret from step 1.
+3. Under **Authentication → URL Configuration**, add your app's URL (`http://localhost:3000`
+   for local dev) to the Redirect URLs allow-list.
+
+The frontend calls `supabase.auth.signInWithOAuth({ provider: 'google' })` directly
+(`frontend/src/lib/supabaseClient.ts`) and sends the resulting session's access token as a
+`Authorization: Bearer` header on every backend request (`frontend/src/lib/authFetch.ts`); the
+backend verifies it with `supabase.auth.getUser(token)` — no separate secret or session store
+on our side.
 
 **Environment variables**
 
@@ -173,7 +210,12 @@ RATE_LIMIT_MAX=200
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 ```
+
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` is the **anon** key, not the service-role key — it's meant to
+be exposed client-side and is subject to RLS, distinct from the backend's service-role key.
 
 **Run locally**
 
@@ -184,7 +226,9 @@ npm run dev       # starts backend (3001) and frontend (3000)
 cd backend && npm run eval   # backend must already be running
 ```
 
-`npm run eval` wipes the `documents` table and re-ingests the eval corpus first, so don't run it while relying on manually uploaded documents. It paces itself at 5s between questions to stay under the API's own rate limiter; set `EVAL_SLEEP_MS=1500` to run it faster locally.
+`npm run eval` wipes and re-ingests the eval corpus first, so don't run it while relying on manually uploaded documents under the same account. It paces itself at 5s between questions to stay under the API's own rate limiter; set `EVAL_SLEEP_MS=1500` to run it faster locally.
+
+Since the API requires a signed-in user, the eval authenticates as its own dedicated Supabase account (`backend/src/eval/authClient.ts`) — created automatically on first run via the service-role key, no manual setup needed. It only ever owns the disposable eval corpus, so "wipes and re-ingests" only touches that account's documents, never a real user's.
 
 `npm run eval:hindi` runs the same suite against a separate Hindi corpus and pair set (`hindi_corpus.txt` / `hindi_pairs.json`), useful for checking retrieval tuning against non-English content without touching the English eval that CI gates on.
 

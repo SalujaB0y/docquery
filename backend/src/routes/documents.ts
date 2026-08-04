@@ -17,10 +17,11 @@ type DocumentRow = {
   chunks: { count: number }[];
 };
 
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   const { data, error } = await supabase
     .from('documents')
     .select('id, filename, folder_id, summary, created_at, chunks(count)')
+    .eq('user_id', req.userId)
     .order('created_at', { ascending: false });
 
   if (error) {
