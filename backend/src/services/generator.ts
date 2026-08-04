@@ -8,9 +8,11 @@ const MAX_TOKENS_PER_REQUEST = 3000;
 // gpt-4o-mini input pricing as of 2024
 const COST_PER_1K_INPUT_TOKENS = 0.00015;
 
+export type Source = { index: number; content: string; documentId: string };
+
 export type GeneratorResult = {
   answer: string;
-  sources: { index: number; content: string }[];
+  sources: Source[];
   tokenCount: number;
   estimatedCost: number;
   followUps: string[];
@@ -111,6 +113,7 @@ export async function generateAnswer(
   const sources = activeChunks.map((c, i) => ({
     index: i + 1,
     content: c.content,
+    documentId: c.document_id,
   }));
 
   const followUps = includeFollowUps
@@ -121,7 +124,7 @@ export async function generateAnswer(
 }
 
 export type StreamEvent =
-  | { type: 'sources'; sources: { index: number; content: string }[] }
+  | { type: 'sources'; sources: Source[] }
   | { type: 'token'; token: string }
   | { type: 'followups'; followUps: string[] }
   | { type: 'done'; tokenCount: number; estimatedCost: number };
@@ -138,7 +141,7 @@ export async function* streamAnswer(
 
   yield {
     type: 'sources',
-    sources: activeChunks.map((c, i) => ({ index: i + 1, content: c.content })),
+    sources: activeChunks.map((c, i) => ({ index: i + 1, content: c.content, documentId: c.document_id })),
   };
 
   const stream = await client.chat.completions.create({
