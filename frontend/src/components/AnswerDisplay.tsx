@@ -1,28 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-import type { QueryResult } from '@/app/page';
+import type { QueryResult, UploadedDoc } from '@/app/page';
 
 type Props = {
+  question: string;
   result: QueryResult;
-  onFollowUpClick?: (question: string) => void;
+  documents: UploadedDoc[];
+  onFollowUpClick: (question: string) => void;
 };
 
 const FALLBACK_MESSAGE = "I don't have enough information in the uploaded documents to answer this.";
 
-function AnswerWithTooltips({
+function filenameFor(documentId: string, documents: UploadedDoc[]): string {
+  return documents.find(d => d.documentId === documentId)?.filename ?? 'source';
+}
+
+function AnswerBody({
   answer,
   sources,
+  activeIndex,
+  onToggle,
 }: {
   answer: string;
   sources: QueryResult['sources'];
+  activeIndex: number | null;
+  onToggle: (index: number) => void;
 }) {
-  const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
-
   const parts = answer.split(/(\[\d+\])/g);
 
   return (
-    <p className="text-zinc-200 text-sm leading-relaxed">
+    <p className="text-[15.5px] leading-[1.72] text-ink">
       {parts.map((part, i) => {
         const match = part.match(/^\[(\d+)\]$/);
         if (!match) return <span key={i}>{part}</span>;
@@ -32,116 +40,129 @@ function AnswerWithTooltips({
         if (!source) return <span key={i}>{part}</span>;
 
         return (
-          <span key={i} className="relative inline-block">
-            <button
-              onClick={() => setActiveTooltip(activeTooltip === index ? null : index)}
-              className="text-accent font-medium hover:underline focus:outline-none"
-            >
-              {part}
-            </button>
-            {activeTooltip === index && (
-              <span className="
-                absolute left-0 top-6 z-10 w-72
-                bg-zinc-800 border border-zinc-700 rounded-lg p-3
-                text-xs text-zinc-300 leading-relaxed shadow-xl
-              ">
-                {source.content}
-              </span>
-            )}
-          </span>
+          <button
+            key={i}
+            onClick={() => onToggle(index)}
+            className={`
+              inline-flex items-center justify-center min-w-[16px] h-4 mx-[2px] px-1
+              rounded-[5px] font-mono text-[10px] font-medium align-[1px] cursor-pointer
+              ${activeIndex === index ? 'bg-accent text-accent-fg' : 'bg-accent-soft text-accent'}
+            `}
+          >
+            {index}
+          </button>
         );
       })}
     </p>
   );
 }
 
-function FollowUpInput({ onSubmit }: { onSubmit: (question: string) => void }) {
-  const [value, setValue] = useState('');
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    onSubmit(trimmed);
-    setValue('');
-  }
-
+function SourceChips({
+  sources,
+  documents,
+  activeIndex,
+  onToggle,
+}: {
+  sources: QueryResult['sources'];
+  documents: UploadedDoc[];
+  activeIndex: number | null;
+  onToggle: (index: number) => void;
+}) {
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
-      <input
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        placeholder="Ask your own follow-up..."
-        className="
-          flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5
-          text-xs text-zinc-200 placeholder-zinc-500
-          focus:outline-none focus:border-accent
-          transition-colors duration-150
-        "
-      />
-      <button
-        type="submit"
-        disabled={!value.trim()}
-        className="
-          px-3 py-1.5 rounded-lg text-xs font-medium
-          bg-accent text-white
-          disabled:opacity-40 disabled:cursor-not-allowed
-          hover:bg-indigo-400 transition-colors duration-150
-        "
-      >
-        Ask
-      </button>
-    </form>
+    <div className="flex flex-wrap gap-[7px] items-center">
+      {sources.map(source => (
+        <button
+          key={source.index}
+          onClick={() => onToggle(source.index)}
+          className={`
+            flex items-center gap-[7px] pl-[6px] pr-[10px] py-[5px] rounded-[8px] border
+            bg-panel cursor-pointer transition-colors duration-150
+            ${activeIndex === source.index ? 'border-accent' : 'border-edge hover:border-accent'}
+          `}
+        >
+          <span className="flex items-center justify-center w-4 h-4 rounded-[4px] bg-accent-soft text-accent font-mono text-[9.5px]">
+            {source.index}
+          </span>
+          <span className="font-mono text-[11.5px] text-muted truncate max-w-[180px]">
+            {filenameFor(source.documentId, documents)}
+          </span>
+          <span className="text-faint text-[10px]">{activeIndex === source.index ? '▴' : '▾'}</span>
+        </button>
+      ))}
+      <span className="font-mono text-[10.5px] text-faint">
+        {sources.length} chunk{sources.length === 1 ? '' : 's'} retrieved
+      </span>
+    </div>
   );
 }
 
-export default function AnswerDisplay({ result, onFollowUpClick }: Props) {
+export default function AnswerDisplay({ question, result, documents, onFollowUpClick }: Props) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const isFallback = result.answer.startsWith(FALLBACK_MESSAGE.slice(0, 20));
+  const activeSource = activeIndex !== null ? result.sources.find(s => s.index === activeIndex) : undefined;
+
+  function toggle(index: number) {
+    setActiveIndex(prev => (prev === index ? null : index));
+  }
 
   return (
-    <div className="border border-zinc-800 rounded-xl p-6 space-y-4">
-      {isFallback ? (
-        <div className="space-y-2">
-          <p className="text-zinc-400 text-xs uppercase tracking-widest font-medium">No confident match</p>
-          <p className="text-zinc-300 text-sm leading-relaxed">{result.answer}</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <p className="text-zinc-400 text-xs uppercase tracking-widest font-medium">Answer</p>
-          <AnswerWithTooltips answer={result.answer} sources={result.sources} />
-        </div>
-      )}
+    <div className="flex flex-col gap-[14px]">
+      <div className="self-end max-w-[78%] bg-accent-soft border border-edge rounded-[14px_14px_4px_14px] px-[15px] py-[11px] text-[14.5px] leading-[1.5] text-ink">
+        {question}
+      </div>
 
-      {!isFallback && onFollowUpClick && (
-        <div className="space-y-2 pt-2 border-t border-zinc-800">
-          <p className="text-zinc-400 text-xs uppercase tracking-widest font-medium">Follow up</p>
-          {result.followUps.length > 0 && (
+      <div className="flex flex-col gap-3">
+        {isFallback ? (
+          <div className="flex flex-col gap-2">
+            <p className="font-mono text-[10px] tracking-[0.12em] text-faint uppercase">No confident match</p>
+            <p className="text-[14.5px] leading-relaxed text-muted">{result.answer}</p>
+          </div>
+        ) : (
+          <>
+            <AnswerBody answer={result.answer} sources={result.sources} activeIndex={activeIndex} onToggle={toggle} />
+
+            {result.sources.length > 0 && (
+              <SourceChips sources={result.sources} documents={documents} activeIndex={activeIndex} onToggle={toggle} />
+            )}
+
+            {activeSource && (
+              <div className="rounded-[8px] border border-edge overflow-hidden" style={{ borderLeft: '2px solid var(--accent)' }}>
+                <div className="px-3 py-2 border-b border-edge">
+                  <span className="font-mono text-[11.5px] text-muted">
+                    {filenameFor(activeSource.documentId, documents)} · source {activeSource.index}
+                  </span>
+                </div>
+                <p className="px-[13px] py-[11px] font-mono text-[13px] leading-[1.65] text-muted whitespace-pre-wrap">
+                  {activeSource.content}
+                </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {!isFallback && result.followUps.length > 0 && (
+          <div className="flex flex-col gap-2 mt-1">
+            <span className="font-mono text-[10px] tracking-[0.12em] text-faint uppercase">Follow up</span>
             <div className="flex flex-wrap gap-2">
-              {result.followUps.map((question, i) => (
+              {result.followUps.map((q, i) => (
                 <button
                   key={i}
-                  onClick={() => onFollowUpClick(question)}
-                  className="
-                    text-xs px-3 py-1.5 rounded-full
-                    border border-zinc-700 text-zinc-300
-                    hover:border-accent hover:text-accent
-                    transition-colors duration-150
-                  "
+                  onClick={() => onFollowUpClick(q)}
+                  className="text-[13px] px-[13px] py-[7px] rounded-full border border-edge bg-panel text-muted hover:border-accent hover:text-accent transition-colors duration-150"
                 >
-                  {question}
+                  {q}
                 </button>
               ))}
             </div>
-          )}
-          <FollowUpInput onSubmit={onFollowUpClick} />
-        </div>
-      )}
+          </div>
+        )}
 
-      {result.tokenCount > 0 && (
-        <p className="text-zinc-600 text-xs pt-2 border-t border-zinc-800">
-          {result.tokenCount} tokens · ~${result.estimatedCost.toFixed(5)}
-        </p>
-      )}
+        {result.tokenCount > 0 && (
+          <p className="font-mono text-[10.5px] text-faint pt-2 border-t border-edge">
+            {result.tokenCount} tokens · ~${result.estimatedCost.toFixed(5)}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

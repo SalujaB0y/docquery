@@ -2,12 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #0d0d10;
+  --surface: #141419;
+  --surface2: #1b1b22;
+  --raise: #22222b;
+  --border: #26262f;
+  --border2: #33333f;
+  --text: #ecebf1;
+  --muted: #9895a6;
+  --faint: #6b687a;
+  --accent: #7d6cf6;
+  --accent-hi: #9384ff;
+  --accent-fg: #0d0d10;
+  --accent-soft: #211d3d;
+  --dot-a: #2dd4a7;
+  --dot-b: #f2496b;
+  --dot-c: #f0a437;
+  --dot-d: #4cc2f1;
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: #f6f5f8;
+  --surface: #ffffff;
+  --surface2: #f1f0f5;
+  --raise: #eceaf2;
+  --border: #e4e2ec;
+  --border2: #d6d3e0;
+  --text: #191723;
+  --muted: #636075;
+  --faint: #8b889c;
+  --accent: #5a49d8;
+  --accent-hi: #4736c9;
+  --accent-fg: #ffffff;
+  --accent-soft: #edeaff;
+  --dot-a: #0f9b74;
+  --dot-b: #d92a4e;
+  --dot-c: #c07708;
+  --dot-d: #1a8fc4;
+  color-scheme: light;
+}
 
 * {
   box-sizing: border-box;
-}
-
-html {
-  color-scheme: dark;
 }

@@ -9,6 +9,7 @@ import AnswerDisplay from '@/components/AnswerDisplay';
 export type Source = {
   index: number;
   content: string;
+  documentId: string;
 };
 
 export type ConversationTurn = {
@@ -41,14 +42,28 @@ export type Folder = {
   createdAt: string;
 };
 
+type Theme = 'dark' | 'light';
+
 export default function Home() {
   const [documents, setDocuments] = useState<UploadedDoc[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
+  const [currentQuestion, setCurrentQuestion] = useState('');
   const [result, setResult] = useState<QueryResult | null>(null);
   const [querying, setQuerying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<ConversationTurn[]>([]);
+  const [theme, setTheme] = useState<Theme>('dark');
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem('docquery-theme');
+    if (stored === 'dark' || stored === 'light') setTheme(stored);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem('docquery-theme', theme);
+  }, [theme]);
 
   // changing which documents are in scope reads as "new line of inquiry" — clear the
   // conversation memory so a stale topic doesn't leak into the rewrite/generation prompt.
@@ -90,10 +105,18 @@ export default function Home() {
     setFolders(prev => [...prev, folder]);
   }
 
+  function handleNewThread() {
+    setHistory([]);
+    setResult(null);
+    setError(null);
+    setCurrentQuestion('');
+  }
+
   async function handleQuery(question: string) {
     setQuerying(true);
     setError(null);
     setResult(null);
+    setCurrentQuestion(question);
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/query`, {
@@ -163,38 +186,94 @@ export default function Home() {
     }
   }
 
-  return (
-    <main className="max-w-2xl mx-auto px-4 py-16">
-      <div className="mb-12">
-        <h1 className="text-3xl font-semibold tracking-tight mb-2">DocQuery</h1>
-        <p className="text-zinc-400 text-sm">
-          Upload documents, then ask questions across all of them or one at a time.
-        </p>
-      </div>
+  const totalChunks = documents.reduce((sum, doc) => sum + doc.chunksIngested, 0);
+  const scopeLabel = selectedDocIds.size === 0 ? 'all documents' : `scope: ${selectedDocIds.size} file${selectedDocIds.size === 1 ? '' : 's'}`;
 
-      <div className="space-y-8">
+  return (
+    <div className="flex h-screen min-h-[640px] w-full bg-bg text-ink overflow-hidden">
+      <aside className="w-[288px] flex-none h-full flex flex-col bg-panel border-r border-edge">
+        <div className="flex items-center gap-[9px] px-4 h-14 flex-none border-b border-edge">
+          <div className="w-[22px] h-[22px] rounded-[6px] bg-accent flex items-center justify-center text-[12px] font-bold text-accent-fg">D</div>
+          <span className="text-[15px] font-semibold tracking-tight">DocQuery</span>
+        </div>
+
         <FileUpload folders={folders} onUpload={handleUpload} />
 
-        {documents.length > 0 && (
-          <DocumentList
-            documents={documents}
-            folders={folders}
-            selectedDocIds={selectedDocIds}
-            onChange={setSelectedDocIds}
-            onFolderCreated={handleFolderCreated}
-          />
-        )}
+        <DocumentList
+          documents={documents}
+          folders={folders}
+          selectedDocIds={selectedDocIds}
+          onChange={setSelectedDocIds}
+          onFolderCreated={handleFolderCreated}
+        />
+
+        <div className="flex-none border-t border-edge px-4 py-[11px] flex items-center justify-between">
+          <span className="font-mono text-[10.5px] text-faint">{documents.length} docs · {totalChunks} chunks</span>
+          <button
+            onClick={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))}
+            className="flex items-center gap-[5px] px-[9px] py-1 border border-edge rounded-full text-[11px] text-muted hover:border-accent hover:text-accent transition-colors duration-150"
+          >
+            {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 h-full flex flex-col min-w-0 bg-bg">
+        <header className="flex-none h-14 flex items-center justify-between px-6 border-b border-edge bg-panel">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="text-[14px] font-semibold tracking-tight truncate">
+              {currentQuestion || 'Ask about your documents'}
+            </span>
+            <span className="font-mono text-[10px] tracking-wide px-2 py-[3px] rounded-full bg-accent-soft text-accent whitespace-nowrap">
+              {scopeLabel}
+            </span>
+          </div>
+          <button
+            onClick={handleNewThread}
+            className="text-[12.5px] font-medium px-3 py-[6px] rounded-[7px] border border-edge2 hover:border-accent hover:text-accent transition-colors duration-150"
+          >
+            New thread
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-6 pt-9 pb-2">
+          <div className="max-w-[740px] mx-auto flex flex-col gap-[34px]">
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+
+            {result && (
+              <AnswerDisplay
+                question={currentQuestion}
+                result={result}
+                documents={documents}
+                onFollowUpClick={handleQuery}
+              />
+            )}
+
+            {!result && !error && (
+              <p className="text-muted text-sm pt-8">
+                {documents.length > 0
+                  ? 'Ask a question below to get a cited answer from your selected sources.'
+                  : 'Upload a document in the sidebar to get started.'}
+              </p>
+            )}
+          </div>
+        </div>
 
         {documents.length > 0 && (
-          <QueryInput onSubmit={handleQuery} loading={querying} />
+          <div className="flex-none px-6 pt-3.5 pb-[22px] bg-bg">
+            <div className="max-w-[740px] mx-auto flex flex-col gap-2">
+              <QueryInput
+                onSubmit={handleQuery}
+                loading={querying}
+                placeholder={result ? 'Ask a follow-up…' : 'Ask a question about your documents…'}
+              />
+              <span className="font-mono text-[10.5px] text-faint text-center">
+                Answers are grounded in your selected sources only
+              </span>
+            </div>
+          </div>
         )}
-
-        {error && (
-          <p className="text-red-400 text-sm">{error}</p>
-        )}
-
-        {result && <AnswerDisplay result={result} onFollowUpClick={handleQuery} />}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

@@ -60,35 +60,16 @@ export default function FileUpload({ folders, onUpload }: Props) {
   }
 
   return (
-    <div className="space-y-2">
-      {flatFolders.length > 0 && (
-        <select
-          value={targetFolderId}
-          onChange={e => setTargetFolderId(e.target.value)}
-          onClick={e => e.stopPropagation()}
-          className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-accent"
-        >
-          <option value="">Upload to: root (no folder)</option>
-          {flatFolders.map(({ folder, depth }) => (
-            <option key={folder.folderId} value={folder.folderId}>
-              {'  '.repeat(depth)}{folder.name}
-            </option>
-          ))}
-        </select>
-      )}
-
+    <div className="px-3.5 pt-3.5 pb-3 flex flex-col gap-2.5 border-b border-edge">
       <div
         onClick={() => inputRef.current?.click()}
         onDrop={handleDrop}
         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         className={`
-          border-2 border-dashed rounded-xl px-6 py-10 text-center cursor-pointer
-          transition-colors duration-150
-          ${dragOver
-            ? 'border-accent bg-indigo-950/20'
-            : 'border-zinc-700 hover:border-zinc-500'
-          }
+          border border-dashed rounded-[10px] px-3 py-[18px] flex flex-col items-center gap-[5px]
+          cursor-pointer transition-colors duration-150
+          ${dragOver ? 'border-accent bg-accent-soft' : 'border-edge2 bg-panel2 hover:border-accent hover:bg-accent-soft'}
         `}
       >
         <input
@@ -103,20 +84,35 @@ export default function FileUpload({ folders, onUpload }: Props) {
         />
 
         {uploading ? (
-          <p className="text-zinc-400 text-sm">Uploading and indexing...</p>
+          <span className="text-[13px] text-muted">Uploading and indexing...</span>
         ) : (
           <>
-            <p className="text-zinc-300 text-sm font-medium">
-              Drop a file here or click to browse
-            </p>
-            <p className="text-zinc-500 text-xs mt-1">.txt or .pdf, up to 10MB</p>
+            <span className="text-[13px] font-medium text-ink">Drop a file or browse</span>
+            <span className="font-mono text-[10.5px] text-faint tracking-wide">.txt · .pdf · up to 10MB</span>
           </>
         )}
-
-        {error && (
-          <p className="text-red-400 text-xs mt-3">{error}</p>
-        )}
       </div>
+
+      {error && <p className="text-red-400 text-xs">{error}</p>}
+
+      {flatFolders.length > 0 && (
+        <div className="flex items-center gap-2 text-xs text-muted">
+          <span className="flex-shrink-0">Upload to</span>
+          <select
+            value={targetFolderId}
+            onChange={e => setTargetFolderId(e.target.value)}
+            onClick={e => e.stopPropagation()}
+            className="flex-1 min-w-0 bg-bg border border-edge rounded-[7px] px-2 py-[5px] text-xs text-ink focus:outline-none focus:border-accent"
+          >
+            <option value="">root</option>
+            {flatFolders.map(({ folder, depth }) => (
+              <option key={folder.folderId} value={folder.folderId}>
+                {'  '.repeat(depth)}{folder.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   );
 }
