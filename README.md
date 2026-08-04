@@ -232,6 +232,35 @@ Since the API requires a signed-in user, the eval authenticates as its own dedic
 
 `npm run eval:hindi` runs the same suite against a separate Hindi corpus and pair set (`hindi_corpus.txt` / `hindi_pairs.json`), useful for checking retrieval tuning against non-English content without touching the English eval that CI gates on.
 
+## Deploying your own instance
+
+There's no shared public instance of this app. It's designed to be self-hosted: everyone who
+runs it gets their own Supabase project, their own Google OAuth credentials, and pays for their
+own OpenAI usage with their own key. If you want a copy reachable from your phone or shared with
+a couple of people, not just `localhost`:
+
+1. Do the **Setup** steps above (Supabase schema, Google provider) against your own Supabase
+   project, if you haven't already.
+2. **Backend** — deploy `backend/` to a small Node host (Render, Railway, and Fly.io all work;
+   Render's free/hobby tier is the simplest to point at a GitHub repo). Set the root directory
+   to `backend`, build command `npm install && npm run build`, start command `npm start`, and
+   set the same environment variables as local (`OPENAI_API_KEY`, `SUPABASE_URL`,
+   `SUPABASE_SERVICE_ROLE_KEY`, `RATE_LIMIT_MAX`), plus `FRONTEND_URL` set to wherever step 3
+   ends up living — the backend's CORS config only allows that one origin, not a wildcard.
+3. **Frontend** — deploy `frontend/` to Vercel (import the repo, set the root directory to
+   `frontend`, it auto-detects Next.js). Set `NEXT_PUBLIC_API_URL` to the backend's deployed
+   URL from step 2, and `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the
+   same values as local.
+4. In the Supabase dashboard, **Authentication → URL Configuration**, add the Vercel URL from
+   step 3 to the Redirect URLs allow-list (alongside `http://localhost:3000` if you still want
+   local dev to keep working). The Google Cloud OAuth Client's redirect URI doesn't need to
+   change — Google always redirects back to Supabase's own callback URL, never directly to your
+   frontend, regardless of where the frontend is hosted.
+
+That's the whole surface: two deploys and one allow-list entry, no code changes. Steps 2–4 are
+one-time setup per deployment, not per user — anyone you invite into your instance just signs in
+with Google, same as local.
+
 ## What I'd improve
 
 - **Actually fixing the over-refusal.** 7.4% is measured but untreated. The fix is prompt-side, and it's deliberately not done yet: with only two failing cases and answers generated at temperature 0.2, a prompt change followed by one green eval run would be indistinguishable from a lucky roll. Doing this properly means repeated runs (or temperature 0 in the eval path) and watching fallback accuracy for the corresponding regression, since both come off the same dial.
