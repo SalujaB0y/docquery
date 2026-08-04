@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import FileUpload from '@/components/FileUpload';
 import DocumentList from '@/components/DocumentList';
 import QueryInput from '@/components/QueryInput';
@@ -11,9 +11,15 @@ export type Source = {
   content: string;
 };
 
+export type ConversationTurn = {
+  question: string;
+  answer: string;
+};
+
 export type QueryResult = {
   answer: string;
   sources: Source[];
+  followUps: string[];
   tokenCount: number;
   estimatedCost: number;
 };
@@ -23,6 +29,7 @@ export type UploadedDoc = {
   filename: string;
   chunksIngested: number;
   folderId: string | null;
+  summary: string | null;
   // only present on documents that came back from GET /api/documents, not fresh uploads
   createdAt?: string;
 };
@@ -41,6 +48,20 @@ export default function Home() {
   const [result, setResult] = useState<QueryResult | null>(null);
   const [querying, setQuerying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<ConversationTurn[]>([]);
+
+  // changing which documents are in scope reads as "new line of inquiry" — clear the
+  // conversation memory so a stale topic doesn't leak into the rewrite/generation prompt.
+  // skipped on the very first render so mounting with an empty selection doesn't no-op reset
+  // an already-empty history
+  const prevSelectionRef = useRef<string | null>(null);
+  useEffect(() => {
+    const key = Array.from(selectedDocIds).sort().join(',');
+    if (prevSelectionRef.current !== null && prevSelectionRef.current !== key) {
+      setHistory([]);
+    }
+    prevSelectionRef.current = key;
+  }, [selectedDocIds]);
 
   // the page only knows about this session's uploads otherwise — a refresh would lose them
   useEffect(() => {
@@ -83,6 +104,9 @@ export default function Home() {
           // empty selection means "search everything" — omit the field entirely rather
           // than sending [], since the backend treats [] as "match no documents"
           documentIds: selectedDocIds.size > 0 ? Array.from(selectedDocIds) : undefined,
+          // prior turns only — the backend resolves references like "that" against these
+          // before retrieval, and replays them for the model's conversational memory
+          history,
         }),
       });
 
@@ -94,6 +118,7 @@ export default function Home() {
 
       let sources: Source[] = [];
       let answer = '';
+      let followUps: string[] = [];
       let tokenCount = 0;
       let estimatedCost = 0;
 
@@ -116,16 +141,21 @@ export default function Home() {
             sources = data.sources;
           } else if (eventType === 'token') {
             answer += data.token;
-            setResult({ answer, sources, tokenCount, estimatedCost });
+            setResult({ answer, sources, followUps, tokenCount, estimatedCost });
+          } else if (eventType === 'followups') {
+            followUps = data.followUps;
+            setResult({ answer, sources, followUps, tokenCount, estimatedCost });
           } else if (eventType === 'done') {
             tokenCount = data.tokenCount;
             estimatedCost = data.estimatedCost;
-            setResult({ answer, sources, tokenCount, estimatedCost });
+            setResult({ answer, sources, followUps, tokenCount, estimatedCost });
           } else if (eventType === 'error') {
             throw new Error(data.message);
           }
         }
       }
+
+      setHistory(prev => [...prev, { question, answer }]);
     } catch {
       setError('Something went wrong. Check that the backend is running.');
     } finally {
@@ -163,7 +193,7 @@ export default function Home() {
           <p className="text-red-400 text-sm">{error}</p>
         )}
 
-        {result && <AnswerDisplay result={result} />}
+        {result && <AnswerDisplay result={result} onFollowUpClick={handleQuery} />}
       </div>
     </main>
   );

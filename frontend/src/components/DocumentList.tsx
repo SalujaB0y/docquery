@@ -186,7 +186,12 @@ export default function DocumentList({ documents, folders, selectedDocIds, onCha
           onChange={() => toggleDocument(doc.documentId)}
           className="accent-accent"
         />
-        <span className="text-zinc-400 flex-1">{doc.filename}</span>
+        <span
+          className="text-zinc-400 flex-1"
+          title={doc.summary ?? undefined}
+        >
+          {doc.filename}
+        </span>
         <span className="text-zinc-600 text-xs">{doc.chunksIngested} chunks</span>
       </div>
     );

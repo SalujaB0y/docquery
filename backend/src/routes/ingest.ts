@@ -5,6 +5,7 @@ import upload from '../middleware/upload';
 import { chunkText } from '../services/chunker';
 import { isUsableChunk } from '../services/scorer';
 import { embedChunks } from '../services/embedder';
+import { summarizeDocument } from '../services/summarizer';
 
 const router = Router();
 
@@ -31,7 +32,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
   // leaving a second copy of the same chunks competing in retrieval.
   const { data: exactMatch } = await supabase
     .from('documents')
-    .select('id, filename, folder_id, chunks(count)')
+    .select('id, filename, folder_id, summary, chunks(count)')
     .eq('content_hash', contentHash)
     .maybeSingle();
 
@@ -40,6 +41,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
       documentId: exactMatch.id,
       filename: exactMatch.filename,
       folderId: exactMatch.folder_id,
+      summary: exactMatch.summary,
       chunksIngested: (exactMatch.chunks as { count: number }[])[0]?.count ?? 0,
       duplicate: true,
     });
@@ -69,9 +71,16 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     return;
   }
 
+  // run in parallel — the summary reads the raw text, embedding reads the chunks, neither
+  // depends on the other's result
+  const [summary, embeddings] = await Promise.all([
+    summarizeDocument(text),
+    embedChunks(usableChunks),
+  ]);
+
   const { data: doc, error: docError } = await supabase
     .from('documents')
-    .insert({ filename, content_hash: contentHash, folder_id: folderId })
+    .insert({ filename, content_hash: contentHash, folder_id: folderId, summary })
     .select()
     .single();
 
@@ -79,8 +88,6 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     res.status(500).json({ error: 'failed to save document record' });
     return;
   }
-
-  const embeddings = await embedChunks(usableChunks);
 
   const rows = usableChunks.map((content, i) => ({
     document_id: doc.id,
@@ -104,6 +111,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     documentId: doc.id,
     filename,
     folderId: doc.folder_id,
+    summary: doc.summary,
     chunksIngested: usableChunks.length,
   });
 });

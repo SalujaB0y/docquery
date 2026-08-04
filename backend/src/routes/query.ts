@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { retrieveChunks } from '../services/retriever';
 import { generateAnswer, streamAnswer } from '../services/generator';
+import { rewriteStandaloneQuestion, ConversationTurn, MAX_HISTORY_TURNS } from '../services/queryRewriter';
 
 const router = Router();
 
@@ -11,9 +12,15 @@ function writeEvent(res: Response, event: string, data: unknown) {
 }
 
 router.post('/', async (req: Request, res: Response) => {
-  const { question, documentIds } = req.body as { question?: string; documentIds?: string[] };
+  const { question, documentIds, history } = req.body as {
+    question?: string;
+    documentIds?: string[];
+    history?: ConversationTurn[];
+  };
   // eval hits this with stream=false so it can read a single JSON body
   const streaming = req.query.stream !== 'false';
+  // eval also skips this — it's an extra OpenAI call per answered question the eval doesn't need
+  const includeFollowUps = req.query.followups !== 'false';
 
   if (!question || question.trim().length === 0) {
     res.status(400).json({ error: 'question is required' });
@@ -22,15 +29,23 @@ router.post('/', async (req: Request, res: Response) => {
 
   const timestamp = new Date().toISOString();
   const truncatedQ = question.slice(0, 80);
+  const cappedHistory = (history ?? []).slice(-MAX_HISTORY_TURNS);
 
   try {
-    const chunks = await retrieveChunks(question, documentIds);
+    // only pay for the rewrite when there's actually a conversation to resolve against —
+    // a fresh question has nothing ambiguous to rewrite
+    const retrievalQuestion = cappedHistory.length > 0
+      ? await rewriteStandaloneQuestion(question, cappedHistory)
+      : question;
+    const rewriteNote = retrievalQuestion !== question ? ` rewritten="${retrievalQuestion.slice(0, 80)}"` : '';
+
+    const chunks = await retrieveChunks(retrievalQuestion, documentIds);
 
     if (chunks.length === 0) {
-      console.log(`[${timestamp}] q="${truncatedQ}" → no chunks above threshold`);
+      console.log(`[${timestamp}] q="${truncatedQ}"${rewriteNote} → no chunks above threshold`);
 
       if (!streaming) {
-        res.json({ answer: FALLBACK_ANSWER, sources: [], tokenCount: 0, estimatedCost: 0 });
+        res.json({ answer: FALLBACK_ANSWER, sources: [], tokenCount: 0, estimatedCost: 0, followUps: [] });
         return;
       }
 
@@ -45,10 +60,10 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     if (!streaming) {
-      const result = await generateAnswer(question, chunks);
+      const result = await generateAnswer(retrievalQuestion, chunks, includeFollowUps, cappedHistory);
 
       console.log(
-        `[${timestamp}] q="${truncatedQ}" chunks=${chunks.length} ` +
+        `[${timestamp}] q="${truncatedQ}"${rewriteNote} chunks=${chunks.length} ` +
         `scores=${chunks.map(c => c.similarity.toFixed(2)).join(',')} ` +
         `tokens=${result.tokenCount} cost=$${result.estimatedCost.toFixed(5)}`
       );
@@ -64,7 +79,7 @@ router.post('/', async (req: Request, res: Response) => {
     let tokenCount = 0;
     let estimatedCost = 0;
 
-    for await (const event of streamAnswer(question, chunks)) {
+    for await (const event of streamAnswer(retrievalQuestion, chunks, includeFollowUps, cappedHistory)) {
       writeEvent(res, event.type, event);
       if (event.type === 'done') {
         tokenCount = event.tokenCount;
@@ -73,7 +88,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     console.log(
-      `[${timestamp}] q="${truncatedQ}" chunks=${chunks.length} ` +
+      `[${timestamp}] q="${truncatedQ}"${rewriteNote} chunks=${chunks.length} ` +
       `scores=${chunks.map(c => c.similarity.toFixed(2)).join(',')} ` +
       `tokens=${tokenCount} cost=$${estimatedCost.toFixed(5)}`
     );

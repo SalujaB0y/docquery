@@ -12,6 +12,7 @@ type DocumentRow = {
   id: string;
   filename: string;
   folder_id: string | null;
+  summary: string | null;
   created_at: string;
   chunks: { count: number }[];
 };
@@ -19,7 +20,7 @@ type DocumentRow = {
 router.get('/', async (_req: Request, res: Response) => {
   const { data, error } = await supabase
     .from('documents')
-    .select('id, filename, folder_id, created_at, chunks(count)')
+    .select('id, filename, folder_id, summary, created_at, chunks(count)')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -32,6 +33,7 @@ router.get('/', async (_req: Request, res: Response) => {
     documentId: doc.id,
     filename: doc.filename,
     folderId: doc.folder_id,
+    summary: doc.summary,
     createdAt: doc.created_at,
     chunksIngested: doc.chunks[0]?.count ?? 0,
   }));

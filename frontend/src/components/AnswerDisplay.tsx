@@ -5,6 +5,7 @@ import type { QueryResult } from '@/app/page';
 
 type Props = {
   result: QueryResult;
+  onFollowUpClick?: (question: string) => void;
 };
 
 const FALLBACK_MESSAGE = "I don't have enough information in the uploaded documents to answer this.";
@@ -54,7 +55,47 @@ function AnswerWithTooltips({
   );
 }
 
-export default function AnswerDisplay({ result }: Props) {
+function FollowUpInput({ onSubmit }: { onSubmit: (question: string) => void }) {
+  const [value, setValue] = useState('');
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    onSubmit(trimmed);
+    setValue('');
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex gap-2">
+      <input
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder="Ask your own follow-up..."
+        className="
+          flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5
+          text-xs text-zinc-200 placeholder-zinc-500
+          focus:outline-none focus:border-accent
+          transition-colors duration-150
+        "
+      />
+      <button
+        type="submit"
+        disabled={!value.trim()}
+        className="
+          px-3 py-1.5 rounded-lg text-xs font-medium
+          bg-accent text-white
+          disabled:opacity-40 disabled:cursor-not-allowed
+          hover:bg-indigo-400 transition-colors duration-150
+        "
+      >
+        Ask
+      </button>
+    </form>
+  );
+}
+
+export default function AnswerDisplay({ result, onFollowUpClick }: Props) {
   const isFallback = result.answer.startsWith(FALLBACK_MESSAGE.slice(0, 20));
 
   return (
@@ -68,6 +109,31 @@ export default function AnswerDisplay({ result }: Props) {
         <div className="space-y-2">
           <p className="text-zinc-400 text-xs uppercase tracking-widest font-medium">Answer</p>
           <AnswerWithTooltips answer={result.answer} sources={result.sources} />
+        </div>
+      )}
+
+      {!isFallback && onFollowUpClick && (
+        <div className="space-y-2 pt-2 border-t border-zinc-800">
+          <p className="text-zinc-400 text-xs uppercase tracking-widest font-medium">Follow up</p>
+          {result.followUps.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {result.followUps.map((question, i) => (
+                <button
+                  key={i}
+                  onClick={() => onFollowUpClick(question)}
+                  className="
+                    text-xs px-3 py-1.5 rounded-full
+                    border border-zinc-700 text-zinc-300
+                    hover:border-accent hover:text-accent
+                    transition-colors duration-150
+                  "
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          )}
+          <FollowUpInput onSubmit={onFollowUpClick} />
         </div>
       )}
 

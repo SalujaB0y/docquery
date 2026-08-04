@@ -17,6 +17,8 @@ A RAG (retrieval-augmented generation) Q&A system. Upload a document, ask questi
 - **Folders with multi-document query scoping.** Documents can be organized into arbitrarily nested folders; the frontend resolves a folder selection to a flat list of document IDs client-side (it already has the tree loaded to render it), so `match_chunks` only ever needs to filter by `filter_document_ids uuid[]`, never reason about folder hierarchy itself. Passing `null` searches everything, which keeps the eval on the same code path as the UI's "All documents" option.
 - **Instructions and retrieved content aren't the same message.** Uploaded documents are untrusted data: their content ends up inside the LLM prompt, so a document containing something like "ignore all previous instructions" is a real, well-known attack (indirect prompt injection). [generator.ts](backend/src/services/generator.ts) puts the system instructions and the retrieved excerpts in separate roles rather than one blended string, and the eval suite includes a probe that checks an embedded instruction gets reported on, not obeyed.
 - **Re-uploading doesn't pollute retrieval.** [ingest.ts](backend/src/routes/ingest.ts) hashes each upload's content: an exact re-upload is skipped rather than re-embedded and duplicated, and a same-filename upload with different content (a corrected transcript, say) replaces the old chunks instead of leaving them to keep competing in retrieval alongside the new ones. The same-filename check is scoped per folder, not global, so "notes.txt" in one folder doesn't clobber an unrelated "notes.txt" in another. Matters most for a document set that grows and changes over time rather than a fixed one-time corpus.
+- **Auto-summary on upload, follow-ups after each answer.** [summarizer.ts](backend/src/services/summarizer.ts) generates a one-sentence description per document at ingest time, shown as a tooltip in the document list. After each answer, a separate call in [generator.ts](backend/src/services/generator.ts) suggests up to three follow-up questions grounded in the same retrieved excerpts; clicking one re-runs the query, and a free-text box next to the suggestions lets you ask your own. Both are opt-out via a query param (`?followups=false`), which the eval runner uses so it isn't paying for suggestions nobody scores.
+- **Follow-ups carry real conversational memory, not just topic drift.** Retrieval embeds the question in isolation, so a follow-up like "why does that happen?" has almost nothing to match against on its own. [queryRewriter.ts](backend/src/services/queryRewriter.ts) resolves it against the last few turns into a standalone query *before* retrieval runs, and [generator.ts](backend/src/services/generator.ts) replays the same turns as real conversation history in the prompt, not just a rewritten question, so the answer reads coherently rather than as a one-off. Verified directly: the same vague follow-up returns the honest fallback with no history and a correct, cited answer with it. History resets when the document selection changes, since that's a real signal the topic moved on.
 
 ## Architecture
 
@@ -99,6 +101,7 @@ create table documents (
   filename text not null,
   content_hash text,
   folder_id uuid references folders(id) on delete set null,
+  summary text,
   created_at timestamptz default now()
 );
 

@@ -44,7 +44,9 @@ type QueryResponse = {
 async function query(question: string, retries = 3): Promise<QueryResponse> {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const res = await fetch(`${API_URL}/api/query?stream=false`, {
+      // follow-up suggestions are a UI nicety the eval doesn't score — skip the extra
+      // OpenAI call per answered question
+      const res = await fetch(`${API_URL}/api/query?stream=false&followups=false`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
