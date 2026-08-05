@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../lib/supabaseClient';
 import crypto from 'crypto';
 import upload from '../middleware/upload';
 import { chunkText } from '../services/chunker';
@@ -8,11 +8,6 @@ import { embedChunks } from '../services/embedder';
 import { summarizeDocument } from '../services/summarizer';
 
 const router = Router();
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 router.post('/', upload.single('file'), async (req: Request, res: Response) => {
   if (!req.file) {

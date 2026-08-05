@@ -1,12 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../lib/supabaseClient';
 
 const router = Router();
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 router.get('/', async (req: Request, res: Response) => {
   const { data, error } = await supabase

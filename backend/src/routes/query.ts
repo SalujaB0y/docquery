@@ -1,15 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../lib/supabaseClient';
 import { retrieveChunks } from '../services/retriever';
 import { generateAnswer, streamAnswer } from '../services/generator';
 import { rewriteStandaloneQuestion, ConversationTurn, MAX_HISTORY_TURNS } from '../services/queryRewriter';
 
 const router = Router();
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 const FALLBACK_ANSWER = "I don't have enough information in the uploaded documents to answer this.";
 

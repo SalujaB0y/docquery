@@ -3,15 +3,10 @@ dotenv.config();
 
 import fs from 'fs';
 import path from 'path';
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../lib/supabaseClient';
 import { getEvalSession } from './authClient';
 
 const API_URL = process.env.EVAL_API_URL ?? 'http://localhost:3001';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 async function reset() {
   console.log('clearing old documents/chunks before eval run...');
