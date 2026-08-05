@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import pdfParse from 'pdf-parse';
 import supabase from '../lib/supabaseClient';
 import crypto from 'crypto';
 import upload from '../middleware/upload';
@@ -15,7 +16,18 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     return;
   }
 
-  const text = req.file.buffer.toString('utf-8');
+  let text: string;
+  if (req.file.mimetype === 'application/pdf') {
+    try {
+      text = (await pdfParse(req.file.buffer)).text;
+    } catch {
+      res.status(422).json({ error: 'could not read this PDF — it may be scanned/image-only or corrupted' });
+      return;
+    }
+  } else {
+    text = req.file.buffer.toString('utf-8');
+  }
+
   const filename = req.file.originalname;
   const contentHash = crypto.createHash('sha256').update(text).digest('hex');
   // multer parses non-file fields into req.body; empty string from a "root" picker
