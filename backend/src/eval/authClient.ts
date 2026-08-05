@@ -1,14 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import supabase from '../lib/supabaseClient';
 
 const EVAL_EMAIL = 'eval-service@docquery.local';
-// a fixed local default is fine — this account only ever owns the disposable eval corpus,
-// never real user data, and the service-role key already gates who can reach this codepath
-const EVAL_PASSWORD = process.env.EVAL_SERVICE_PASSWORD ?? 'eval-service-account-not-a-real-user';
+// no hardcoded fallback: Supabase's password-grant endpoint is reachable directly with the
+// public anon key, independent of this backend entirely, so a known default here would let
+// anyone sign in as this account against a live project — it has to be a real secret
+const rawPassword = process.env.EVAL_SERVICE_PASSWORD;
+if (!rawPassword) {
+  throw new Error('EVAL_SERVICE_PASSWORD must be set — see README.md for the eval setup');
+}
+const EVAL_PASSWORD: string = rawPassword;
 
 export type EvalSession = {
   userId: string;

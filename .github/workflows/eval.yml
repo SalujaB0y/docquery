@@ -54,6 +54,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          EVAL_SERVICE_PASSWORD: ${{ secrets.EVAL_SERVICE_PASSWORD }}
           EVAL_API_URL: http://localhost:3001
         run: npm run eval
 

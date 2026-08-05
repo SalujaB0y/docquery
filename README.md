@@ -171,9 +171,13 @@ Use the `service_role` key (not `anon`) on the backend: the tables have RLS enab
 on new Supabase projects. Every route filters by `user_id` itself (see
 `backend/src/middleware/auth.ts` and each route in `backend/src/routes/`) rather than relying
 on Postgres RLS policies — the service-role key bypasses RLS entirely, so the per-user
-isolation is enforced in application code, not the database. Worth knowing if this is ever
-extended: a bug in one route's `.eq('user_id', ...)` filter is a real data leak between users,
-since nothing at the database layer would stop it.
+isolation is enforced in application code, not the database. A dedicated review pass traced
+every `select`/`insert`/`update`/`delete` against `documents`, `folders`, `threads`, and the
+retrieval path in `query.ts` and found the scoping consistently correct, including the specific
+case of a forged `documentId` never being able to pull another user's chunks into retrieval.
+That's a point-in-time result, not a standing guarantee: a bug introduced in a future route's
+`.eq('user_id', ...)` filter is a real data leak between users, since nothing at the database
+layer would catch it — worth another pass if this area gets touched again.
 
 Note that Supabase free-tier projects auto-pause after about a week of inactivity. When that happens every request fails with `TypeError: fetch failed` and the hostname stops resolving, which looks like a code bug but isn't. Resume the project from the Supabase dashboard.
 
@@ -207,7 +211,16 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 PORT=3001
 FRONTEND_URL=http://localhost:3000
 RATE_LIMIT_MAX=200
+EVAL_SERVICE_PASSWORD=choose-a-real-secret-here
 ```
+
+`EVAL_SERVICE_PASSWORD` is only read by `npm run eval` (see below) — pick your own value, there's
+no default. An earlier version of this shipped a hardcoded fallback password for the eval's
+service account; since Supabase's sign-in endpoint is reachable directly with the public anon
+key, independent of this backend, a known default there would have let anyone sign in as that
+account against a live project. Caught in review before it was ever relied on in a real
+deployment — worth knowing if this pattern (a service account with a password) gets reused
+elsewhere.
 
 `frontend/.env.local` (see `frontend/.env.local.example`):
 
@@ -231,7 +244,7 @@ cd backend && npm run eval   # backend must already be running
 
 `npm run eval` wipes and re-ingests the eval corpus first, so don't run it while relying on manually uploaded documents under the same account. It paces itself at 5s between questions to stay under the API's own rate limiter; set `EVAL_SLEEP_MS=1500` to run it faster locally.
 
-Since the API requires a signed-in user, the eval authenticates as its own dedicated Supabase account (`backend/src/eval/authClient.ts`) — created automatically on first run via the service-role key, no manual setup needed. It only ever owns the disposable eval corpus, so "wipes and re-ingests" only touches that account's documents, never a real user's.
+Since the API requires a signed-in user, the eval authenticates as its own dedicated Supabase account (`backend/src/eval/authClient.ts`) — the account itself is created automatically on first run via the service-role key, but you need to set `EVAL_SERVICE_PASSWORD` first (see above). It only ever owns the disposable eval corpus, so "wipes and re-ingests" only touches that account's documents, never a real user's. CI needs the same variable set as a repository secret (`secrets.EVAL_SERVICE_PASSWORD` in `.github/workflows/eval.yml`) or the eval job fails outright rather than falling back to anything guessable.
 
 `npm run eval:hindi` runs the same suite against a separate Hindi corpus and pair set (`hindi_corpus.txt` / `hindi_pairs.json`), useful for checking retrieval tuning against non-English content without touching the English eval that CI gates on.
 
